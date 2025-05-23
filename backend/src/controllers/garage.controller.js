@@ -21,9 +21,7 @@ exports.getAllGarages = async (req, res) => {
       city,
       district,
       service,
-      minRating,
-      isActive,
-      isVerified
+      minRating
     } = req.query;
 
     // Search in name or description
@@ -43,14 +41,11 @@ exports.getAllGarages = async (req, res) => {
       filters.services = { [Op.contains]: [service] };
     }
 
-    // Only show active garages for regular users, admins can see all
-    if (req.user && req.user.role === 'admin') {
-      if (isActive !== undefined) filters.is_active = isActive === 'true';
-      if (isVerified !== undefined) filters.is_verified = isVerified === 'true';
-    } else {
-      filters.is_active = true;
-      filters.is_verified = true;
-    }
+    // Only get active and approved garages
+    filters.is_active = true;
+    filters.status = 'approved';
+
+    console.log('Applying filters:', filters); // Debug log
 
     // Get garages with relations
     const garages = await Garage.findAll({
@@ -72,6 +67,8 @@ exports.getAllGarages = async (req, res) => {
       ],
       order: [['create_time', 'DESC']]
     });
+
+    console.log('Found garages:', garages.length); // Debug log
 
     // Filter by minimum rating after fetch (since rating is calculated)
     let result = garages;
@@ -96,6 +93,8 @@ exports.getAllGarages = async (req, res) => {
         garage.dataValues.reviewCount = ratingInfo.reviewCount;
       }
     }
+
+    console.log('Final result count:', result.length); // Debug log
 
     res.status(200).json(result);
   } catch (error) {
@@ -149,7 +148,7 @@ exports.getGarageById = async (req, res) => {
     }
 
     // Check if user has access to view the garage
-    const isPublicAccess = garage.is_active && garage.is_verified;
+    const isPublicAccess = garage.is_active && garage.status === 'approved';
     const isAdmin = req.user?.role === 'admin';
     const isOwner = req.user?.id === garage.user_id;
 
@@ -170,7 +169,7 @@ exports.getGarageById = async (req, res) => {
         details: {
           isOwner,
           isAdmin,
-          isActiveAndVerified: isPublicAccess
+          isActiveAndApproved: isPublicAccess
         }
       });
     }

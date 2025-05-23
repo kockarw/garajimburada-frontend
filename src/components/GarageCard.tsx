@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Star, MapPin, Wrench, Calendar } from 'lucide-react';
 import { GarageResponse } from '../services/garage.service';
+import { useAuth } from '../contexts/AuthContext';
 
 // Define a collection of reliable fallback garage images
 const fallbackImages = [
@@ -19,6 +20,7 @@ interface GarageCardProps {
 
 const GarageCard: React.FC<GarageCardProps> = ({ garage }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   // Get a deterministic fallback image based on garage ID
   const getFallbackImage = (id: string) => {
@@ -43,7 +45,8 @@ const GarageCard: React.FC<GarageCardProps> = ({ garage }) => {
     });
   };
   
-  const handleCardClick = () => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent any default behavior
     navigate(`/garage/${garage.id}`);
   };
   

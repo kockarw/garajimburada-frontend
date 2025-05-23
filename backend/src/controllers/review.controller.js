@@ -44,12 +44,12 @@ exports.createReview = async (req, res) => {
     const userId = req.user.id;
     const { rating, comment } = req.body;
     
-    // Check if garage exists and is active/verified
+    // Check if garage exists and is active/approved
     const garage = await Garage.findOne({
       where: {
         id: garageId,
         is_active: true,
-        is_verified: true
+        status: 'approved'
       }
     });
     

@@ -100,7 +100,7 @@ const GarageDetailPage: React.FC = () => {
       try {
         const data = await garageService.getGarageById(id);
         setGarage(data);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching garage details:', error);
         showToast('Failed to load garage details', 'error');
       } finally {
@@ -599,7 +599,26 @@ const GarageDetailPage: React.FC = () => {
 
         {/* Sidebar */}
         <div className="lg:col-span-1">
-          {/* Admin Controls Card - Added above the Rating Card */}
+          {/* Owner Controls Card - Added above the Rating Card */}
+          {user && garage.owner && user.id === garage.owner.id && (
+            <div className="card border border-secondary-200 p-4 mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-primary-600 flex items-center gap-2">
+                  <Edit size={18} />
+                  <span>Owner Controls</span>
+                </h2>
+              </div>
+              <Link 
+                to={`/edit-garage/${garage.id}`}
+                className="btn btn-primary w-full flex items-center justify-center gap-2"
+              >
+                <Edit size={18} />
+                <span>Edit Garage</span>
+              </Link>
+            </div>
+          )}
+
+          {/* Admin Controls Card */}
           {user?.is_admin && (
             <div className="card border border-secondary-200 p-4 mb-6">
               <div className="flex justify-between items-center mb-4">

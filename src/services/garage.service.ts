@@ -1,9 +1,5 @@
 import api from './api';
 import { Garage, WorkingHours, GalleryImage, Review } from '../mockdata/types';
-// Mock data for temporary use
-import { adminGarages } from '../mockdata/admin';
-import axios from 'axios';
-import { API_URL } from '../config';
 
 // Garage status type
 export type GarageStatus = 'approved' | 'pending' | 'rejected' | 'inactive';
@@ -58,11 +54,16 @@ class GarageService {
     district?: string;
     service?: string;
     minRating?: number;
+    is_active?: boolean;
+    status?: GarageStatus;
   }): Promise<GarageResponse[]> {
     try {
+      console.log('Making API request to /garages with filters:', filters);
       const response = await api.get<GarageResponse[]>('/garages', { params: filters });
+      console.log('Raw API response:', response);
       return response.data;
     } catch (error) {
+      console.error('Detailed API error:', error);
       throw this.handleError(error);
     }
   }

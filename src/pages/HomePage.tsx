@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, Filter, X, ChevronLeft, ChevronRight, Star, Calendar, MapPin } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -19,6 +19,7 @@ const HomePage: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const { showToast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,7 +38,9 @@ const HomePage: React.FC = () => {
     const fetchGarages = async () => {
       setLoading(true);
       try {
+        console.log('Fetching garages...');
         const data = await garageService.getAllGarages();
+        console.log('API Response:', data);
         setGarages(data);
         setFilteredGarages(data);
       } catch (error) {
@@ -169,6 +172,10 @@ const HomePage: React.FC = () => {
   for (let i = 1; i <= Math.ceil(filteredGarages.length / garagesPerPage); i++) {
     pageNumbers.push(i);
   }
+
+  const handleViewDetails = (id: string) => {
+    navigate(`/garage/${id}`);
+  };
 
   return (
     <div>
