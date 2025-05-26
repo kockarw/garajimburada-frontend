@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Edit, Trash, Eye, AlertCircle, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Edit, Trash, Eye, AlertCircle, Clock, CheckCircle, XCircle, Power } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { garageService, GarageStatus } from '../services/garage.service';
@@ -341,7 +341,7 @@ const MyGarageAdsPage: React.FC = () => {
                           {garage.status !== 'approved' && (
                             <button 
                               onClick={(e) => {
-                                e.stopPropagation(); // Prevent card click
+                                e.stopPropagation();
                                 navigate(`/edit-garage/${garage.id}`);
                               }} 
                               className="btn btn-primary btn-sm flex items-center gap-1"
@@ -351,11 +351,23 @@ const MyGarageAdsPage: React.FC = () => {
                               <span className="hidden sm:inline">Edit</span>
                             </button>
                           )}
+                          {garage.status === 'approved' && (
+                            <button 
+                              className="btn btn-secondary btn-sm flex items-center gap-1 text-secondary-600 hover:bg-secondary-100"
+                              title="Set as Inactive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStatusChange(garage.id, 'inactive');
+                              }}
+                            >
+                              <Power size={16} />
+                            </button>
+                          )}
                           <button 
                             className="btn btn-secondary btn-sm flex items-center gap-1 text-error-600 hover:bg-error-50"
                             title="Delete Garage"
                             onClick={(e) => {
-                              e.stopPropagation(); // Prevent card click
+                              e.stopPropagation();
                               openDeleteModal(garage);
                             }}
                           >
@@ -384,15 +396,6 @@ const MyGarageAdsPage: React.FC = () => {
                           <div className="text-sm text-secondary-600">
                             <span className="font-medium">Active and Visible</span> - Your garage is live and can be found by users
                           </div>
-                          <button 
-                            className="btn btn-secondary btn-sm"
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent card click
-                              handleStatusChange(garage.id, 'inactive');
-                            }}
-                          >
-                            Set as Inactive
-                          </button>
                         </div>
                       )}
                       

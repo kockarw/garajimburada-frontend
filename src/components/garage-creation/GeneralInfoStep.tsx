@@ -1,18 +1,14 @@
 import React from 'react';
 import { Building2, Globe, Phone, Mail } from 'lucide-react';
+import { GarageFormData } from '../../types/garage';
 
 interface GeneralInfoStepProps {
-  formData: {
-    name: string;
-    about: string;
-    website: string;
-    phone: string;
-    email: string;
-  };
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
+  formData: GarageFormData;
+  setFormData: React.Dispatch<React.SetStateAction<GarageFormData>>;
+  getInputError: (field: string) => string;
 }
 
-const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, setFormData }) => {
+const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, setFormData, getInputError }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({
@@ -81,7 +77,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, setFormData
       <div className="space-y-4">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-secondary-700 mb-1">
-            Garage Name
+            Garage Name *
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -91,26 +87,33 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, setFormData
               type="text"
               id="name"
               name="name"
+              maxLength={32}
+              className={`input pl-10 ${getInputError('name') ? 'border-error-500 focus:border-error-500' : ''}`}
               value={formData.name}
               onChange={handleChange}
-              className="input pl-10"
               placeholder="Enter garage name"
               required
             />
           </div>
+          {getInputError('name') && (
+            <p className="mt-1 text-sm text-error-500">{getInputError('name')}</p>
+          )}
+          <p className="mt-1 text-sm text-secondary-500">
+            {formData.name.length}/32 characters
+          </p>
         </div>
 
         <div>
           <label htmlFor="about" className="block text-sm font-medium text-secondary-700 mb-1">
-            About
+            About Garage *
           </label>
           <textarea
             id="about"
             name="about"
+            rows={4}
+            className="input"
             value={formData.about}
             onChange={handleChange}
-            className="input"
-            rows={4}
             placeholder="Describe your garage and services"
             required
           />
@@ -138,7 +141,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, setFormData
 
         <div>
           <label htmlFor="phone" className="block text-sm font-medium text-secondary-700 mb-1">
-            Phone Number
+            Phone Number *
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -153,7 +156,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, setFormData
               onFocus={handlePhoneFocus}
               onKeyDown={handlePhoneKeyDown}
               className="input pl-10"
-              placeholder="+905555555555"
+              placeholder="+90 (___) ___ ____"
               required
             />
           </div>
@@ -161,7 +164,7 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, setFormData
 
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-secondary-700 mb-1">
-            Email Address
+            Email Address *
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -173,11 +176,14 @@ const GeneralInfoStep: React.FC<GeneralInfoStepProps> = ({ formData, setFormData
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="input pl-10"
-              placeholder="contact@example.com"
+              className={`input pl-10 ${getInputError('email') ? 'border-error-500 focus:border-error-500' : ''}`}
+              placeholder="garage@example.com"
               required
             />
           </div>
+          {getInputError('email') && (
+            <p className="mt-1 text-sm text-error-500">{getInputError('email')}</p>
+          )}
         </div>
       </div>
     </div>

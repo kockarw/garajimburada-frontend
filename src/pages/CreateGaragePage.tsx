@@ -1,8 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  ArrowRight, 
+  Check, 
+  Info, 
+  MapPin, 
+  Wrench, 
+  Image, 
+  Clock 
+} from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useScrollToTop } from '../hooks/useScrollToTop';
 import garageService from '../services/garage.service';
 import uploadService from '../services/upload.service';
 
@@ -154,17 +164,25 @@ const CreateGaragePage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  // Add effect to scroll to top when step changes
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }, [currentStep]);
+
   // Redirect if not logged in
   if (!user) {
     return <Navigate to="/login" />;
   }
 
   const steps = [
-    { id: 1, title: 'General Information' },
-    { id: 2, title: 'Location' },
-    { id: 3, title: 'Services' },
-    { id: 4, title: 'Images' },
-    { id: 5, title: 'Working Hours' }
+    { id: 1, title: 'General Information', icon: Info },
+    { id: 2, title: 'Location', icon: MapPin },
+    { id: 3, title: 'Services', icon: Wrench },
+    { id: 4, title: 'Images', icon: Image },
+    { id: 5, title: 'Working Hours', icon: Clock }
   ];
 
   const handleNext = () => {
@@ -221,6 +239,59 @@ const CreateGaragePage: React.FC = () => {
     }
   };
 
+  // Email validation function
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Validation function for each step
+  const isStepValid = () => {
+    switch (currentStep) {
+      case 1: // General Information
+        return (
+          formData.name.trim() !== '' &&
+          formData.name.length <= 32 &&
+          formData.about.trim() !== '' &&
+          formData.phone.trim() !== '' &&
+          formData.email.trim() !== '' &&
+          isValidEmail(formData.email)
+        );
+      case 2: // Location
+        return (
+          formData.city.trim() !== '' &&
+          formData.district.trim() !== '' &&
+          formData.address.trim() !== ''
+        );
+      case 3: // Services
+        return formData.services.length > 0;
+      case 4: // Images
+        return true; // Images are optional
+      case 5: // Working Hours
+        return true; // Working hours have default values
+      default:
+        return false;
+    }
+  };
+
+  // Get error message for inputs
+  const getInputError = (field: string) => {
+    switch (field) {
+      case 'name':
+        if (formData.name.length > 32) {
+          return 'Garage name cannot exceed 32 characters';
+        }
+        return '';
+      case 'email':
+        if (formData.email && !isValidEmail(formData.email)) {
+          return 'Please enter a valid email address';
+        }
+        return '';
+      default:
+        return '';
+    }
+  };
+
   const renderStep = () => {
     switch (currentStep) {
       case 1:
@@ -228,6 +299,7 @@ const CreateGaragePage: React.FC = () => {
           <GeneralInfoStep
             formData={formData}
             setFormData={setFormData}
+            getInputError={getInputError}
           />
         );
       case 2:
@@ -268,31 +340,37 @@ const CreateGaragePage: React.FC = () => {
       <div className="max-w-3xl mx-auto">
         {/* Progress Steps */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between px-2 md:px-0">
             {steps.map((step, index) => (
               <React.Fragment key={step.id}>
                 <div className="flex flex-col items-center">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  <button
+                    onClick={() => currentStep > step.id && setCurrentStep(step.id)}
+                    className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center transition-all duration-300 ease-in-out transform ${
                       currentStep >= step.id
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-secondary-200 text-secondary-600'
-                    }`}
+                        ? 'bg-primary-600 text-white scale-100'
+                        : 'bg-secondary-200 text-secondary-600 scale-95'
+                    } ${currentStep > step.id ? 'cursor-pointer hover:bg-primary-700' : 'cursor-default'}`}
                   >
                     {currentStep > step.id ? (
-                      <Check size={16} />
+                      <Check size={14} className="transition-transform duration-300 ease-in-out" />
                     ) : (
-                      <span>{step.id}</span>
+                      <span className="text-sm">{step.id}</span>
                     )}
+                  </button>
+                  <div className="flex items-center gap-1 mt-2">
+                    <step.icon size={14} className="text-secondary-500" />
+                    <span className="text-xs md:text-sm text-secondary-600 hidden md:inline">{step.title}</span>
                   </div>
-                  <span className="text-sm mt-2 text-secondary-600">{step.title}</span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div
-                    className={`flex-1 h-1 mx-4 ${
-                      currentStep > step.id ? 'bg-primary-600' : 'bg-secondary-200'
-                    }`}
-                  />
+                  <div className="flex-1 h-1 mx-2 md:mx-4 relative">
+                    <div className="absolute inset-0 bg-secondary-200" />
+                    <div
+                      className="absolute inset-0 bg-primary-600 transition-all duration-500 ease-in-out origin-left"
+                      style={{ transform: `scaleX(${currentStep > step.id ? 1 : 0})` }}
+                    />
+                  </div>
                 )}
               </React.Fragment>
             ))}
@@ -321,8 +399,10 @@ const CreateGaragePage: React.FC = () => {
             {currentStep < steps.length ? (
               <button
                 onClick={handleNext}
-                className="btn btn-primary flex items-center gap-2"
-                disabled={loading}
+                className={`btn btn-primary flex items-center gap-2 ${
+                  !isStepValid() ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                disabled={loading || !isStepValid()}
               >
                 <span>Next</span>
                 <ArrowRight size={16} />

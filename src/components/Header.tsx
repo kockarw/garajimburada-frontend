@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, User, LogOut, Shield, Wrench, ChevronDown, Plus, Settings, Home } from 'lucide-react';
+import { Menu, X, User, LogOut, Shield, Wrench, ChevronDown, Plus, Settings, Home, Warehouse } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useScrollToTop } from '../hooks/useScrollToTop';
 
@@ -110,20 +110,25 @@ const Header: React.FC = () => {
                         <Link 
                           to="/my-garage-ads" 
                           className="flex items-center gap-2 px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-50"
+                          onClick={() => setIsDropdownOpen(false)}
                         >
-                          <Home size={16} />
+                          <Warehouse size={16} />
                           <span>My Garage Ads</span>
                         </Link>
                         <Link 
                           to="/account" 
                           className="flex items-center gap-2 px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-50"
+                          onClick={() => setIsDropdownOpen(false)}
                         >
                           <Settings size={16} />
                           <span>My Account</span>
                         </Link>
                         <div className="border-t border-secondary-200 my-1"></div>
                         <button 
-                          onClick={handleSignOutClick}
+                          onClick={() => {
+                            setIsDropdownOpen(false);
+                            handleSignOutClick();
+                          }}
                           className="flex items-center gap-2 px-4 py-2 text-sm text-error-600 hover:bg-secondary-50 w-full text-left"
                         >
                           <LogOut size={16} />
@@ -221,24 +226,16 @@ const Header: React.FC = () => {
                 </div>
 
                 {/* Quick Actions */}
-                <div className="grid grid-cols-2 gap-3 mb-6 transform transition-all duration-300 delay-150 ${
+                <div className="mb-6 transform transition-all duration-300 delay-150 ${
                   isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'
                 }">
                   <Link 
                     to="/add-garage" 
-                    className="btn btn-primary flex items-center justify-center gap-2 py-3 transition-colors duration-200"
+                    className="btn btn-primary flex items-center justify-center gap-2 py-3 transition-colors duration-200 w-full"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <Plus size={18} />
                     <span>Garaj Ekle</span>
-                  </Link>
-                  <Link 
-                    to="/my-garage-ads" 
-                    className="btn btn-secondary flex items-center justify-center gap-2 py-3 transition-colors duration-200"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Home size={18} />
-                    <span>Garajlarım</span>
                   </Link>
                 </div>
 
@@ -253,6 +250,15 @@ const Header: React.FC = () => {
                   >
                     <Home size={20} />
                     <span>Ana Sayfa</span>
+                  </Link>
+
+                  <Link 
+                    to="/my-garage-ads" 
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-secondary-50 text-secondary-700"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Warehouse size={20} />
+                    <span>Garajlarım</span>
                   </Link>
 
                   {user.is_admin && (

@@ -1,51 +1,43 @@
 import React from 'react';
-import { Clock } from 'lucide-react';
+import { GarageFormData } from '../../types/garage';
 
 interface WorkingHoursStepProps {
-  formData: {
-    workingHours: {
-      [key: string]: {
-        isOpen: boolean;
-        openTime: string;
-        closeTime: string;
-      };
-    };
-  };
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
+  formData: GarageFormData;
+  setFormData: React.Dispatch<React.SetStateAction<GarageFormData>>;
 }
 
-const DAYS = [
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-  'Sunday'
-];
-
 const WorkingHoursStep: React.FC<WorkingHoursStepProps> = ({ formData, setFormData }) => {
-  const handleDayToggle = (day: string) => {
-    setFormData((prev: any) => ({
+  const days = [
+    { full: 'Monday', short: 'Mon' },
+    { full: 'Tuesday', short: 'Tue' },
+    { full: 'Wednesday', short: 'Wed' },
+    { full: 'Thursday', short: 'Thu' },
+    { full: 'Friday', short: 'Fri' },
+    { full: 'Saturday', short: 'Sat' },
+    { full: 'Sunday', short: 'Sun' }
+  ];
+
+  const handleTimeChange = (day: string, type: 'openTime' | 'closeTime', value: string) => {
+    setFormData(prev => ({
       ...prev,
       workingHours: {
         ...prev.workingHours,
         [day]: {
-          ...prev.workingHours[day],
-          isOpen: !prev.workingHours[day].isOpen
+          ...prev.workingHours[day as keyof typeof prev.workingHours],
+          [type]: value
         }
       }
     }));
   };
 
-  const handleTimeChange = (day: string, field: 'openTime' | 'closeTime', value: string) => {
-    setFormData((prev: any) => ({
+  const handleIsOpenChange = (day: string) => {
+    setFormData(prev => ({
       ...prev,
       workingHours: {
         ...prev.workingHours,
         [day]: {
-          ...prev.workingHours[day],
-          [field]: value
+          ...prev.workingHours[day as keyof typeof prev.workingHours],
+          isOpen: !prev.workingHours[day as keyof typeof prev.workingHours].isOpen
         }
       }
     }));
@@ -61,48 +53,38 @@ const WorkingHoursStep: React.FC<WorkingHoursStepProps> = ({ formData, setFormDa
       </div>
 
       <div className="space-y-4">
-        {DAYS.map((day) => (
-          <div
-            key={day}
-            className="flex items-center justify-between p-4 bg-white rounded-lg border border-secondary-200"
-          >
-            <div className="flex items-center space-x-4">
+        {days.map(day => (
+          <div key={day.full} className="flex items-center gap-3 md:gap-4">
+            <div className="w-20 md:w-28">
+              <span className="hidden md:inline">{day.full}</span>
+              <span className="md:hidden">{day.short}</span>
+            </div>
+            
+            <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
-                id={`day-${day}`}
-                checked={formData.workingHours[day].isOpen}
-                onChange={() => handleDayToggle(day)}
-                className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
+                className="sr-only peer"
+                checked={formData.workingHours[day.full as keyof typeof formData.workingHours].isOpen}
+                onChange={() => handleIsOpenChange(day.full)}
               />
-              <label
-                htmlFor={`day-${day}`}
-                className="text-sm font-medium text-secondary-700"
-              >
-                {day}
-              </label>
-            </div>
+              <div className="w-9 h-5 bg-secondary-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-secondary-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600"></div>
+            </label>
 
-            {formData.workingHours[day].isOpen && (
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Clock size={16} className="text-secondary-400" />
-                  <input
-                    type="time"
-                    value={formData.workingHours[day].openTime}
-                    onChange={(e) => handleTimeChange(day, 'openTime', e.target.value)}
-                    className="border-secondary-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                  />
-                </div>
-                <span className="text-secondary-400">to</span>
-                <div className="flex items-center space-x-2">
-                  <Clock size={16} className="text-secondary-400" />
-                  <input
-                    type="time"
-                    value={formData.workingHours[day].closeTime}
-                    onChange={(e) => handleTimeChange(day, 'closeTime', e.target.value)}
-                    className="border-secondary-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                  />
-                </div>
+            {formData.workingHours[day.full as keyof typeof formData.workingHours].isOpen && (
+              <div className="flex items-center gap-2 flex-1">
+                <input
+                  type="time"
+                  className="input py-1.5 px-2 w-24 md:w-32 text-sm"
+                  value={formData.workingHours[day.full as keyof typeof formData.workingHours].openTime}
+                  onChange={(e) => handleTimeChange(day.full, 'openTime', e.target.value)}
+                />
+                <span className="text-secondary-500">-</span>
+                <input
+                  type="time"
+                  className="input py-1.5 px-2 w-24 md:w-32 text-sm"
+                  value={formData.workingHours[day.full as keyof typeof formData.workingHours].closeTime}
+                  onChange={(e) => handleTimeChange(day.full, 'closeTime', e.target.value)}
+                />
               </div>
             )}
           </div>

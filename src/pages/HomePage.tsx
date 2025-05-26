@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Filter, X, ChevronLeft, ChevronRight, Star, Calendar, MapPin } from 'lucide-react';
+import { Search, Filter, X, ChevronLeft, ChevronRight, Star, Calendar, MapPin, ChevronDown } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import GarageCard from '../components/GarageCard';
@@ -11,6 +11,28 @@ import {
   sortOptions 
 } from '../mockdata/filters';
 import garageService, { GarageResponse } from '../services/garage.service';
+
+// Add useWindowSize hook
+const useWindowSize = () => {
+  const [windowSize, setWindowSize] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 768,
+  });
+
+  useEffect(() => {
+    function handleResize() {
+      setWindowSize({
+        width: window.innerWidth,
+      });
+    }
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return windowSize;
+};
 
 const HomePage: React.FC = () => {
   const [garages, setGarages] = useState<GarageResponse[]>([]);
@@ -33,6 +55,8 @@ const HomePage: React.FC = () => {
   const [districtFilter, setDistrictFilter] = useState('All Districts');
   const [sortBy, setSortBy] = useState('rating');
   const [hoveredRating, setHoveredRating] = useState(0);
+
+  const { width } = useWindowSize();
 
   useEffect(() => {
     const fetchGarages = async () => {
@@ -194,7 +218,7 @@ const HomePage: React.FC = () => {
         <div className="relative py-12 md:py-24 px-4 md:px-6 text-center text-white max-w-7xl mx-auto">
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 text-primary-500 drop-shadow-lg">GarajımBurada</h1>
           <p className="text-lg md:text-xl max-w-3xl mx-auto mb-6 md:mb-10 drop-shadow-md">
-            Discover professional garages offering the best tuning and modification services for your car.
+            Find expert auto tuning & modification garages near you
           </p>
           
           {/* Search Bar */}
@@ -202,7 +226,7 @@ const HomePage: React.FC = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search by garage name or keyword..."
+                placeholder={width < 768 ? "Search by garages name" : "Search by garage name or keyword..."}
                 className="input w-full pl-12 py-3 md:py-4 text-base border-white shadow-lg text-secondary-800"
                 value={searchQuery}
                 onChange={handleSearchChange}
@@ -214,11 +238,11 @@ const HomePage: React.FC = () => {
           {/* Mobile Filter Toggle */}
           <div className="md:hidden px-4">
             <button 
-              className="btn btn-secondary w-full flex items-center justify-center gap-2 shadow-lg"
+              className="btn w-full flex items-center justify-center gap-2 py-2.5 text-white rounded-lg hover:bg-white/10 active:bg-white/20 transition-colors"
               onClick={toggleFilters}
             >
               <Filter size={18} className={`transition-transform duration-300 ${showFilters ? 'rotate-180' : ''}`} />
-              <span>{showFilters ? 'Hide Filters' : 'Show Filters'}</span>
+              <span className="font-medium">{showFilters ? 'Hide Filters' : 'Show Filters'}</span>
             </button>
           </div>
         </div>
@@ -249,15 +273,31 @@ const HomePage: React.FC = () => {
                     <label className="block text-sm font-medium text-secondary-700 mb-2">
                       Type of Service
                     </label>
-                    <select 
-                      className="input w-full" 
-                      value={serviceFilter}
-                      onChange={handleServiceFilterChange}
-                    >
-                      {serviceOptions.map(option => (
-                        <option key={option} value={option}>{option}</option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select 
+                        className="input w-full appearance-none pr-10" 
+                        value={serviceFilter}
+                        onChange={handleServiceFilterChange}
+                      >
+                        {serviceOptions.map(option => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                        <ChevronDown size={16} className="text-secondary-500" />
+                      </div>
+                    </div>
+                    {serviceFilter !== 'All Services' && (
+                      <div className="mt-2 flex items-center">
+                        <button 
+                          onClick={() => setServiceFilter('All Services')}
+                          className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                        >
+                          <X size={12} />
+                          <span>Clear Selection</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                   
                   {/* Minimum Rating - Stars instead of numbers */}
@@ -356,19 +396,6 @@ const HomePage: React.FC = () => {
                   {filteredGarages.length} {filteredGarages.length === 1 ? 'garage' : 'garages'} found
                   {filteredGarages.length > 0 && `, showing ${indexOfFirstGarage + 1}-${Math.min(indexOfLastGarage, filteredGarages.length)} of ${filteredGarages.length}`}
                 </p>
-                
-                {/* Sort By - Mobile Only */}
-                <div className="w-full md:w-auto md:hidden">
-                  <select 
-                    className="input w-full" 
-                    value={sortBy}
-                    onChange={handleSortChange}
-                  >
-                    {sortOptions.map(option => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                </div>
               </div>
           
               {loading ? (

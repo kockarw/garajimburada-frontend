@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
               <h3 className="text-lg font-bold text-white">GarajımBurada</h3>
             </div>
             <p className="text-secondary-300 mb-4">
-              Türkiye'nin en iyi garaj bulma platformu. Araç tamir, bakım ve modifikasyon hizmetleri için en yakın profesyonel garajları keşfedin.
+              Turkey's premier garage finding platform. Discover the nearest professional garages for your vehicle repair, maintenance, and modification services.
             </p>
             <div className="flex gap-4">
               <a href="#" className="text-secondary-400 hover:text-primary-500 transition-colors" aria-label="Facebook">
@@ -32,38 +32,33 @@ const Footer: React.FC = () => {
           </div>
           
           <div>
-            <h4 className="text-lg font-bold text-white mb-4">Hızlı Bağlantılar</h4>
+            <h4 className="text-lg font-bold text-white mb-4">Quick Links</h4>
             <ul className="space-y-2">
               <li>
                 <Link to="/" className="text-secondary-300 hover:text-primary-500 transition-colors">
-                  Ana Sayfa
-                </Link>
-              </li>
-              <li>
-                <Link to="/about" className="text-secondary-300 hover:text-primary-500 transition-colors">
-                  Hakkımızda
+                  Home
                 </Link>
               </li>
               <li>
                 <Link to="/add-garage" className="text-secondary-300 hover:text-primary-500 transition-colors">
-                  Garaj Ekle
+                  Add Garage
                 </Link>
               </li>
               <li>
                 <Link to="/register" className="text-secondary-300 hover:text-primary-500 transition-colors">
-                  Üye Ol
+                  Register
                 </Link>
               </li>
               <li>
                 <Link to="/login" className="text-secondary-300 hover:text-primary-500 transition-colors">
-                  Giriş Yap
+                  Login
                 </Link>
               </li>
             </ul>
           </div>
           
           <div>
-            <h4 className="text-lg font-bold text-white mb-4">Garaj Hizmetleri</h4>
+            <h4 className="text-lg font-bold text-white mb-4">Garage Services</h4>
             <ul className="space-y-2">
               <li>
                 <a href="#" className="text-secondary-300 hover:text-primary-500 transition-colors">
@@ -72,7 +67,7 @@ const Footer: React.FC = () => {
               </li>
               <li>
                 <a href="#" className="text-secondary-300 hover:text-primary-500 transition-colors">
-                  Bakım
+                  Maintenance
                 </a>
               </li>
               <li>
@@ -87,18 +82,18 @@ const Footer: React.FC = () => {
               </li>
               <li>
                 <a href="#" className="text-secondary-300 hover:text-primary-500 transition-colors">
-                  Elektrik Tamiratları
+                  Electrical Repairs
                 </a>
               </li>
             </ul>
           </div>
           
           <div>
-            <h4 className="text-lg font-bold text-white mb-4">İletişim</h4>
+            <h4 className="text-lg font-bold text-white mb-4">Contact</h4>
             <address className="not-italic text-secondary-300 space-y-3">
               <div className="flex items-center gap-2">
                 <MapPin size={18} className="text-primary-500 shrink-0" />
-                <p>Atatürk Mah. Teknoloji Cad. No:12, İstanbul</p>
+                <p>Ataturk District, Technology Street No:12, Istanbul</p>
               </div>
               <div className="flex items-center gap-2">
                 <Phone size={18} className="text-primary-500 shrink-0" />
@@ -110,14 +105,14 @@ const Footer: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Clock size={18} className="text-primary-500 shrink-0" />
-                <p>Pazartesi - Cumartesi: 09:00 - 18:00</p>
+                <p>Monday - Saturday: 09:00 - 18:00</p>
               </div>
             </address>
           </div>
         </div>
         
         <div className="border-t border-secondary-700 mt-8 pt-8 text-center text-secondary-400">
-          <p>&copy; {new Date().getFullYear()} GarajımBurada. Tüm hakları saklıdır.</p>
+          <p>&copy; {new Date().getFullYear()} GarajimBurada. All rights reserved.</p>
         </div>
       </div>
     </footer>
