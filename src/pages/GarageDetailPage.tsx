@@ -428,8 +428,10 @@ const GarageDetailPage: React.FC = () => {
                   }`}
                   onClick={() => handleTabChange('reviews')}
                 >
-                  <span>Reviews</span>
-                  <span className="text-xs opacity-75">({garage.reviews.length})</span>
+                  <div className="flex items-center gap-1">
+                    <span>Reviews</span>
+                    <span className="opacity-75">({garage.reviews.length})</span>
+                  </div>
                 </button>
               </div>
             </div>
