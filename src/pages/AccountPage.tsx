@@ -80,7 +80,41 @@ const AccountPage: React.FC = () => {
       <p className="text-secondary-600 mb-8">Manage your account information and settings</p>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-1">
+        {/* Mobile Tab List - Horizontal Icons */}
+        <div className="lg:hidden px-4 mb-6">
+          <div className="grid grid-cols-5 gap-1 bg-secondary-50/50 rounded-xl p-1.5 relative overflow-hidden">
+            {/* Active Tab Background Indicator */}
+            <div 
+              className="absolute bg-white rounded-lg shadow-sm transition-transform duration-300 ease-out"
+              style={{
+                width: `calc((100% - 6px * 4) / 5)`, // Total width minus gaps divided by number of columns
+                aspectRatio: '1',
+                transform: `translateX(calc(${tabConfig.findIndex(tab => tab.id === activeTab)} * (100% + 6px)))`,
+                top: '6px',
+                left: '6px'
+              }}
+            />
+            {tabConfig.map((tab, index) => (
+              <button
+                key={tab.id}
+                className={`aspect-square rounded-lg flex items-center justify-center transition-all duration-300 ease-out relative z-10 ${
+                  activeTab === tab.id 
+                    ? 'text-primary-600 scale-105' 
+                    : 'text-secondary-600 hover:text-primary-500'
+                }`}
+                onClick={() => setActiveTab(tab.id)}
+                title={tab.label}
+              >
+                <span className={`transition-transform duration-300 ${activeTab === tab.id ? 'scale-110' : ''}`}>
+                  {tab.icon}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop Tab List - Vertical with Labels */}
+        <div className="hidden lg:block lg:col-span-1">
           <div className="card sticky top-24">
             <div className="p-4 border-b border-secondary-200">
               <div className="flex items-center gap-3">
@@ -94,17 +128,30 @@ const AccountPage: React.FC = () => {
               </div>
             </div>
             
-            <div className="p-2">
-              {tabConfig.map(tab => (
+            <div className="p-2 relative">
+              {/* Active Tab Background Indicator */}
+              <div 
+                className="absolute left-2 right-2 bg-primary-50 rounded-md transition-transform duration-300 ease-out"
+                style={{
+                  height: '46px',
+                  transform: `translateY(${tabConfig.findIndex(tab => tab.id === activeTab) * (46 + 4)}px)`, // height + margin-bottom
+                  top: '8px' // p-2 = 8px
+                }}
+              />
+              {tabConfig.map((tab, index) => (
                 <button
                   key={tab.id}
-                  className={`w-full text-left px-4 py-3 rounded-md mb-1 transition-colors flex items-center gap-3 ${
-                    activeTab === tab.id ? 'bg-primary-50 text-primary-600' : 'hover:bg-secondary-50 text-secondary-700'
+                  className={`w-full text-left px-4 py-3 rounded-md mb-1 transition-all duration-300 ease-out flex items-center gap-3 relative z-10 ${
+                    activeTab === tab.id 
+                      ? 'text-primary-600 transform scale-[1.02]' 
+                      : 'text-secondary-700 hover:text-primary-500'
                   }`}
                   onClick={() => setActiveTab(tab.id)}
                 >
-                  {tab.icon}
-                  <span>{tab.label}</span>
+                  <span className={`transition-transform duration-300 ${activeTab === tab.id ? 'scale-110' : ''}`}>
+                    {tab.icon}
+                  </span>
+                  <span className="transition-colors duration-300">{tab.label}</span>
                 </button>
               ))}
             </div>
@@ -113,6 +160,7 @@ const AccountPage: React.FC = () => {
         
         <div className="lg:col-span-3">
           <div className="card min-h-[calc(100vh-300px)]">
+            {/* Active Tab Label - Mobile Only */}
             <div className="p-6 border-b border-secondary-200">
               <h2 className="text-xl font-semibold">{activeTabData?.label}</h2>
             </div>

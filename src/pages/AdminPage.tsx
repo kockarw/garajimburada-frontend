@@ -36,44 +36,44 @@ const AdminPage: React.FC = () => {
   const tabConfig = [
     {
       id: 'garage-listings',
-      label: 'Garage Listings',
-      icon: <LayoutDashboard size={18} />,
+      label: 'Garaj İlanları',
+      icon: <LayoutDashboard size={20} />,
       component: <GarageListingsTab />
     },
     {
       id: 'new-submissions',
-      label: 'New Submissions',
-      icon: <ShoppingBag size={18} />,
+      label: 'Yeni Başvurular',
+      icon: <ShoppingBag size={20} />,
       component: <NewGarageSubmissionsTab />
     },
     {
       id: 'comments',
-      label: 'Comments',
-      icon: <MessageSquare size={18} />,
+      label: 'Yorumlar',
+      icon: <MessageSquare size={20} />,
       component: <CommentModerationTab />
     },
     {
       id: 'users',
-      label: 'Users',
-      icon: <Users size={18} />,
+      label: 'Kullanıcılar',
+      icon: <Users size={20} />,
       component: <UserManagementTab />
     },
     {
       id: 'settings',
-      label: 'Settings',
-      icon: <Settings size={18} />,
+      label: 'Ayarlar',
+      icon: <Settings size={20} />,
       component: <SettingsTab />
     },
     {
       id: 'feedback',
-      label: 'Feedback',
-      icon: <MessageCircle size={18} />,
+      label: 'Geri Bildirim',
+      icon: <MessageCircle size={20} />,
       component: <FeedbackTab />
     },
     {
       id: 'analytics',
-      label: 'Analytics',
-      icon: <BarChart size={18} />,
+      label: 'Analitik',
+      icon: <BarChart size={20} />,
       component: <AnalyticsTab />
     }
   ];
@@ -82,41 +82,94 @@ const AdminPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container py-16 flex justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      <div className="container py-8 md:py-16 flex justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 md:h-12 md:w-12 border-t-2 border-b-2 border-primary-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-8">Admin Panel</h1>
+    <div className="container py-4 md:py-8">
+      <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 px-4 md:px-0">Admin Panel</h1>
       
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        <div className="lg:col-span-1">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-8">
+        {/* Mobile Tab List - Horizontal Icons */}
+        <div className="lg:hidden px-4">
+          <div className="grid grid-cols-7 gap-1 bg-secondary-50/50 rounded-xl p-1.5 relative overflow-hidden">
+            {/* Active Tab Background Indicator */}
+            <div 
+              className="absolute bg-white rounded-lg shadow-sm transition-transform duration-300 ease-out"
+              style={{
+                width: `calc((100% - 6px * 6) / 7)`, // Total width minus gaps divided by number of columns
+                aspectRatio: '1',
+                transform: `translateX(calc(${tabConfig.findIndex(tab => tab.id === activeTab)} * (100% + 6px)))`,
+                top: '6px',
+                left: '6px'
+              }}
+            />
+            {tabConfig.map((tab, index) => (
+              <button
+                key={tab.id}
+                className={`aspect-square rounded-lg flex items-center justify-center transition-all duration-300 ease-out relative z-10 ${
+                  activeTab === tab.id 
+                    ? 'text-primary-600 scale-105' 
+                    : 'text-secondary-600 hover:text-primary-500'
+                }`}
+                onClick={() => setActiveTab(tab.id)}
+                title={tab.label}
+              >
+                {tab.icon}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop Tab List - Vertical with Labels */}
+        <div className="hidden lg:block lg:col-span-1">
           <div className="card sticky top-24">
             <div className="p-4 border-b border-secondary-200">
               <h2 className="text-lg font-semibold">Dashboard</h2>
             </div>
-            <div className="p-2">
-              {tabConfig.map(tab => (
+            <div className="p-2 relative">
+              {/* Active Tab Background Indicator */}
+              <div 
+                className="absolute left-2 right-2 bg-primary-50 rounded-md transition-transform duration-300 ease-out"
+                style={{
+                  height: '46px',
+                  transform: `translateY(${tabConfig.findIndex(tab => tab.id === activeTab) * (46 + 4)}px)`, // height + margin-bottom
+                  top: '8px' // p-2 = 8px
+                }}
+              />
+              {tabConfig.map((tab, index) => (
                 <button
                   key={tab.id}
-                  className={`w-full text-left px-4 py-3 rounded-md mb-1 transition-colors flex items-center gap-3 ${
-                    activeTab === tab.id ? 'bg-primary-50 text-primary-600' : 'hover:bg-secondary-50 text-secondary-700'
+                  className={`w-full text-left px-4 py-3 rounded-md mb-1 transition-all duration-300 ease-out flex items-center gap-3 relative z-10 ${
+                    activeTab === tab.id 
+                      ? 'text-primary-600 transform scale-[1.02]' 
+                      : 'text-secondary-700 hover:text-primary-500'
                   }`}
                   onClick={() => setActiveTab(tab.id)}
                 >
-                  {tab.icon}
-                  <span>{tab.label}</span>
+                  <span className={`transition-transform duration-300 ${activeTab === tab.id ? 'scale-110' : ''}`}>
+                    {tab.icon}
+                  </span>
+                  <span className="transition-colors duration-300">{tab.label}</span>
                 </button>
               ))}
             </div>
           </div>
         </div>
         
-        <div className="lg:col-span-4">
+        {/* Content Area */}
+        <div className="lg:col-span-4 px-4 lg:px-0">
           <div className="min-h-[calc(100vh-200px)]">
+            {/* Active Tab Label - Mobile Only */}
+            <div className="lg:hidden mb-4">
+              <h2 className="text-xl font-semibold text-secondary-900">
+                {activeTabData?.label}
+              </h2>
+            </div>
+            
             {activeTabData?.component}
           </div>
         </div>

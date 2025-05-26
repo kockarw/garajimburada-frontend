@@ -11,6 +11,9 @@ import type {
   GalleryImage 
 } from '../mockdata/types';
 
+// Add this near the top of the file, after the imports
+type TabType = 'about' | 'location' | 'gallery' | 'reviews';
+
 // Modal component for confirmation
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -69,7 +72,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 const GarageDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [garage, setGarage] = useState<GarageResponse | null>(null);
-  const [activeTab, setActiveTab] = useState('about');
+  const [activeTab, setActiveTab] = useState<TabType>('about');
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
   const { user } = useAuth();
@@ -201,7 +204,7 @@ const GarageDetailPage: React.FC = () => {
     });
   };
 
-  const handleTabChange = (tab: string) => {
+  const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
   };
 
@@ -378,221 +381,255 @@ const GarageDetailPage: React.FC = () => {
           {/* Tabs */}
           <div className="mb-8">
             <div className="border-b border-secondary-200">
-              <div className="flex overflow-x-auto scrollbar-hidden">
+              <div className="grid grid-cols-4 gap-1 relative">
+                {/* Active Tab Indicator */}
+                <div 
+                  className="absolute bottom-0 h-0.5 bg-primary-600 transition-transform duration-300 ease-out"
+                  style={{
+                    width: '25%',
+                    transform: `translateX(${['about', 'location', 'gallery', 'reviews'].indexOf(activeTab) * 100}%)`
+                  }}
+                />
                 <button
-                  className={`px-6 py-3 text-sm font-medium ${activeTab === 'about' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-secondary-600 hover:text-secondary-900'}`}
+                  className={`flex flex-col items-center justify-center py-3 text-xs md:text-sm font-medium transition-colors relative ${
+                    activeTab === 'about' 
+                      ? 'text-primary-600' 
+                      : 'text-secondary-600 hover:text-secondary-900'
+                  }`}
                   onClick={() => handleTabChange('about')}
                 >
-                  Details
+                  <span>Details</span>
                 </button>
                 <button
-                  className={`px-6 py-3 text-sm font-medium ${activeTab === 'location' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-secondary-600 hover:text-secondary-900'}`}
+                  className={`flex flex-col items-center justify-center py-3 text-xs md:text-sm font-medium transition-colors relative ${
+                    activeTab === 'location' 
+                      ? 'text-primary-600' 
+                      : 'text-secondary-600 hover:text-secondary-900'
+                  }`}
                   onClick={() => handleTabChange('location')}
                 >
-                  Location
+                  <span>Location</span>
                 </button>
                 <button
-                  className={`px-6 py-3 text-sm font-medium ${activeTab === 'gallery' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-secondary-600 hover:text-secondary-900'}`}
+                  className={`flex flex-col items-center justify-center py-3 text-xs md:text-sm font-medium transition-colors relative ${
+                    activeTab === 'gallery' 
+                      ? 'text-primary-600' 
+                      : 'text-secondary-600 hover:text-secondary-900'
+                  }`}
                   onClick={() => handleTabChange('gallery')}
                 >
-                  Gallery
+                  <span>Gallery</span>
                 </button>
                 <button
-                  className={`px-6 py-3 text-sm font-medium ${activeTab === 'reviews' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-secondary-600 hover:text-secondary-900'}`}
+                  className={`flex flex-col items-center justify-center py-3 text-xs md:text-sm font-medium transition-colors relative ${
+                    activeTab === 'reviews' 
+                      ? 'text-primary-600' 
+                      : 'text-secondary-600 hover:text-secondary-900'
+                  }`}
                   onClick={() => handleTabChange('reviews')}
                 >
-                  Reviews ({garage.reviews.length})
+                  <span>Reviews</span>
+                  <span className="text-xs opacity-75">({garage.reviews.length})</span>
                 </button>
               </div>
             </div>
 
             <div className="p-4">
-              {/* About Tab */}
-              {activeTab === 'about' && (
-                <div>
-                  {/* Description */}
-                  <div className="mb-8">
-                    <h2 className="text-xl font-semibold mb-4">About {garage.name}</h2>
-                    <p className="text-secondary-700 whitespace-pre-line">
-                      {garage.description}
-                    </p>
+              <div className="relative overflow-hidden">
+                <div 
+                  className="flex transition-transform duration-300 ease-out w-[400%]"
+                  style={{
+                    transform: `translateX(-${['about', 'location', 'gallery', 'reviews'].indexOf(activeTab) * 25}%)`
+                  }}
+                >
+                  {/* About Tab */}
+                  <div className="w-1/4 min-w-[25%] px-0 md:px-2">
+                    <div>
+                      {/* Description */}
+                      <div className="mb-8">
+                        <h2 className="text-xl font-semibold mb-4">About {garage.name}</h2>
+                        <p className="text-secondary-700 whitespace-pre-line">
+                          {garage.description}
+                        </p>
+                      </div>
+                      
+                      {/* Contact Information */}
+                      <div className="mb-8">
+                        <h3 className="text-lg font-medium mb-3">Contact Information</h3>
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Phone size={18} className="text-primary-600" />
+                            <span>{garage.phone}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Mail size={18} className="text-primary-600" />
+                            <span>{garage.email}</span>
+                          </div>
+                          {garage.website && (
+                            <div className="flex items-center gap-3">
+                              <Globe size={18} className="text-primary-600" />
+                              <a 
+                                href={garage.website.startsWith('http') ? garage.website : `https://${garage.website}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-primary-600 hover:underline"
+                              >
+                                {garage.website}
+                              </a>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-3">
+                            <MapPin size={18} className="text-primary-600" />
+                            <span>{garage.address}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  
-                  {/* Contact Information */}
-                  <div className="mb-8">
-                    <h3 className="text-lg font-medium mb-3">Contact Information</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <Phone size={18} className="text-primary-600" />
-                        <span>{garage.phone}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Mail size={18} className="text-primary-600" />
-                        <span>{garage.email}</span>
-                      </div>
-                      {garage.website && (
-                        <div className="flex items-center gap-3">
-                          <Globe size={18} className="text-primary-600" />
-                          <a 
-                            href={garage.website.startsWith('http') ? garage.website : `https://${garage.website}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-primary-600 hover:underline"
-                          >
-                            {garage.website}
-                          </a>
+
+                  {/* Location Tab */}
+                  <div className="w-1/4 min-w-[25%] px-0 md:px-2">
+                    <div>
+                      <MapComponent 
+                        address={garage.address}
+                        city={garage.city} 
+                        coordinates={garage.coordinates}
+                        height="450px"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Gallery Tab */}
+                  <div className="w-1/4 min-w-[25%] px-0 md:px-2">
+                    <div>
+                      <h2 className="text-xl font-semibold mb-6">Photo Gallery</h2>
+                      {garage.gallery && garage.gallery.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          {garage.gallery.map((image) => (
+                            <div key={image.id} className="relative rounded-lg overflow-hidden aspect-square">
+                              <img 
+                                src={image.image_url} 
+                                alt={image.alt_text} 
+                                className="w-full h-full object-cover transition-transform hover:scale-105"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-12 bg-secondary-50 rounded-lg">
+                          <p className="text-secondary-500">No images available.</p>
                         </div>
                       )}
-                      <div className="flex items-center gap-3">
-                        <MapPin size={18} className="text-primary-600" />
-                        <span>{garage.address}</span>
-                      </div>
                     </div>
                   </div>
-                </div>
-              )}
 
-              {/* Location Tab */}
-              {activeTab === 'location' && (
-                <div>
-                  <MapComponent 
-                    address={garage.address}
-                    city={garage.city} 
-                    coordinates={garage.coordinates}
-                    height="450px"
-                  />
-                </div>
-              )}
-
-              {/* Gallery Tab */}
-              {activeTab === 'gallery' && (
-                <div>
-                  <h2 className="text-xl font-semibold mb-6">Photo Gallery</h2>
-                  {garage.gallery && garage.gallery.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {garage.gallery.map((image) => (
-                        <div key={image.id} className="relative rounded-lg overflow-hidden aspect-square">
-                          <img 
-                            src={image.image_url} 
-                            alt={image.alt_text} 
-                            className="w-full h-full object-cover transition-transform hover:scale-105"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 bg-secondary-50 rounded-lg">
-                      <p className="text-secondary-500">No images available.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Reviews Tab */}
-              {activeTab === 'reviews' && (
-                <div>
-                  <h2 className="text-xl font-semibold mb-6">Customer Reviews</h2>
-                  
-                  {user && (
-                    <div className="mb-8 card border border-secondary-200 p-4">
-                      <h3 className="text-lg font-medium mb-4">Submit a Review</h3>
-                      <form onSubmit={handleReviewSubmit}>
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-secondary-700 mb-1">
-                            Rating
-                          </label>
-                          <div className="flex items-center gap-1">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <label key={star} className="cursor-pointer">
-                                <input
-                                  type="radio"
-                                  name="rating"
-                                  value={star}
-                                  checked={reviewForm.rating === star}
-                                  onChange={handleReviewChange}
-                                  className="sr-only"
-                                />
-                                <Star 
-                                  size={24} 
-                                  className={`transition-colors ${
-                                    reviewForm.rating >= star 
-                                      ? 'text-accent-500 fill-accent-500' 
-                                      : 'text-secondary-300'
-                                  }`} 
-                                />
+                  {/* Reviews Tab */}
+                  <div className="w-1/4 min-w-[25%] px-0 md:px-2">
+                    <div>
+                      <h2 className="text-xl font-semibold mb-6">Customer Reviews</h2>
+                      
+                      {user && (
+                        <div className="mb-8 card border border-secondary-200 p-4">
+                          <h3 className="text-lg font-medium mb-4">Submit a Review</h3>
+                          <form onSubmit={handleReviewSubmit}>
+                            <div className="mb-4">
+                              <label className="block text-sm font-medium text-secondary-700 mb-1">
+                                Rating
                               </label>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="mb-4">
-                          <label 
-                            htmlFor="comment" 
-                            className="block text-sm font-medium text-secondary-700 mb-1"
-                          >
-                            Comment
-                          </label>
-                          <textarea
-                            id="comment"
-                            name="comment"
-                            value={reviewForm.comment}
-                            onChange={handleReviewChange}
-                            rows={4}
-                            className="input"
-                            placeholder="Share your experience..."
-                            required
-                          ></textarea>
-                        </div>
-                        <button type="submit" className="btn btn-primary">
-                          Submit Review
-                        </button>
-                      </form>
-                    </div>
-                  )}
-                  
-                  <div className="space-y-6">
-                    {garage.reviews.length > 0 ? (
-                      garage.reviews.map((review) => (
-                        <div 
-                          key={review.id} 
-                          className="card border border-secondary-200 p-4"
-                        >
-                          <div className="flex justify-between items-start mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-medium">
-                                {review.profiles.username.charAt(0).toUpperCase()}
+                              <div className="flex items-center gap-1">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <label key={star} className="cursor-pointer">
+                                    <input
+                                      type="radio"
+                                      name="rating"
+                                      value={star}
+                                      checked={reviewForm.rating === star}
+                                      onChange={handleReviewChange}
+                                      className="sr-only"
+                                    />
+                                    <Star 
+                                      size={24} 
+                                      className={`transition-colors ${
+                                        reviewForm.rating >= star 
+                                          ? 'text-accent-500 fill-accent-500' 
+                                          : 'text-secondary-300'
+                                      }`} 
+                                    />
+                                  </label>
+                                ))}
                               </div>
-                              <div>
-                                <h3 className="font-medium">{review.profiles.username}</h3>
-                                <div className="text-xs text-secondary-500">
-                                  {new Date(review.created_at).toLocaleDateString()}
+                            </div>
+                            <div className="mb-4">
+                              <label 
+                                htmlFor="comment" 
+                                className="block text-sm font-medium text-secondary-700 mb-1"
+                              >
+                                Comment
+                              </label>
+                              <textarea
+                                id="comment"
+                                name="comment"
+                                value={reviewForm.comment}
+                                onChange={handleReviewChange}
+                                rows={4}
+                                className="input"
+                                placeholder="Share your experience..."
+                                required
+                              ></textarea>
+                            </div>
+                            <button type="submit" className="btn btn-primary">
+                              Submit Review
+                            </button>
+                          </form>
+                        </div>
+                      )}
+                      
+                      <div className="space-y-6">
+                        {garage.reviews.length > 0 ? (
+                          garage.reviews.map((review) => (
+                            <div 
+                              key={review.id} 
+                              className="card border border-secondary-200 p-4"
+                            >
+                              <div className="flex justify-between items-start mb-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-medium">
+                                    {review.profiles.username.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <h3 className="font-medium">{review.profiles.username}</h3>
+                                    <div className="text-xs text-secondary-500">
+                                      {new Date(review.created_at).toLocaleDateString()}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                      key={star}
+                                      size={16}
+                                      className={`${
+                                        review.rating >= star 
+                                          ? 'text-accent-500 fill-accent-500' 
+                                          : 'text-secondary-300'
+                                      }`}
+                                    />
+                                  ))}
                                 </div>
                               </div>
+                              <p className="text-secondary-700">{review.comment}</p>
                             </div>
-                            <div className="flex items-center gap-1">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star
-                                  key={star}
-                                  size={16}
-                                  className={`${
-                                    review.rating >= star 
-                                      ? 'text-accent-500 fill-accent-500' 
-                                      : 'text-secondary-300'
-                                  }`}
-                                />
-                              ))}
-                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-8 bg-secondary-50 rounded-lg">
+                            <p className="text-secondary-500">No reviews yet. Be the first to leave a review!</p>
                           </div>
-                          <p className="text-secondary-700">{review.comment}</p>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8 bg-secondary-50 rounded-lg">
-                        <p className="text-secondary-500">No reviews yet. Be the first to leave a review!</p>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>

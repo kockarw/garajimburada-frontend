@@ -224,61 +224,66 @@ const MyGarageAdsPage: React.FC = () => {
 
       {/* Status Filter */}
       <div className="mb-6">
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-5 gap-1 md:gap-2">
           <Link
             to="/my-garage-ads"
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
+            className={`flex flex-col items-center justify-center px-2 py-2 rounded-md text-xs md:text-sm font-medium ${
               statusFilter === 'all' 
                 ? 'bg-primary-100 text-primary-800' 
                 : 'bg-secondary-100 text-secondary-600 hover:bg-secondary-200'
             }`}
             onClick={() => setStatusFilter('all')}
           >
-            All ({countByStatus.all})
+            <span>All</span>
+            <span className="text-xs opacity-75">({countByStatus.all})</span>
           </Link>
           <Link
             to="/my-garage-ads?status=approved"
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
+            className={`flex flex-col items-center justify-center px-2 py-2 rounded-md text-xs md:text-sm font-medium ${
               statusFilter === 'approved' 
                 ? 'bg-success-100 text-success-800' 
                 : 'bg-secondary-100 text-secondary-600 hover:bg-secondary-200'
             }`}
             onClick={() => setStatusFilter('approved')}
           >
-            Approved ({countByStatus.approved})
+            <span>Approved</span>
+            <span className="text-xs opacity-75">({countByStatus.approved})</span>
           </Link>
           <Link
             to="/my-garage-ads?status=pending"
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
+            className={`flex flex-col items-center justify-center px-2 py-2 rounded-md text-xs md:text-sm font-medium ${
               statusFilter === 'pending' 
                 ? 'bg-warning-100 text-warning-800' 
                 : 'bg-secondary-100 text-secondary-600 hover:bg-secondary-200'
             }`}
             onClick={() => setStatusFilter('pending')}
           >
-            Pending ({countByStatus.pending})
+            <span>Pending</span>
+            <span className="text-xs opacity-75">({countByStatus.pending})</span>
           </Link>
           <Link
             to="/my-garage-ads?status=rejected"
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
+            className={`flex flex-col items-center justify-center px-2 py-2 rounded-md text-xs md:text-sm font-medium ${
               statusFilter === 'rejected' 
                 ? 'bg-error-100 text-error-800' 
                 : 'bg-secondary-100 text-secondary-600 hover:bg-secondary-200'
             }`}
             onClick={() => setStatusFilter('rejected')}
           >
-            Rejected ({countByStatus.rejected})
+            <span>Rejected</span>
+            <span className="text-xs opacity-75">({countByStatus.rejected})</span>
           </Link>
           <Link
             to="/my-garage-ads?status=inactive"
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
+            className={`flex flex-col items-center justify-center px-2 py-2 rounded-md text-xs md:text-sm font-medium ${
               statusFilter === 'inactive' 
                 ? 'bg-secondary-200 text-secondary-800' 
                 : 'bg-secondary-100 text-secondary-600 hover:bg-secondary-200'
             }`}
             onClick={() => setStatusFilter('inactive')}
           >
-            Inactive ({countByStatus.inactive})
+            <span>Inactive</span>
+            <span className="text-xs opacity-75">({countByStatus.inactive})</span>
           </Link>
         </div>
       </div>
