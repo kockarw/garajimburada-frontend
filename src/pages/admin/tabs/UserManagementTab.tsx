@@ -182,74 +182,165 @@ const UserManagementTab: React.FC = () => {
                 <p className="text-secondary-500">No users found matching your search.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-secondary-50">
-                      <th className="px-4 py-2 text-left font-medium text-secondary-700">Username</th>
-                      <th className="px-4 py-2 text-left font-medium text-secondary-700">Email</th>
-                      <th className="px-4 py-2 text-left font-medium text-secondary-700">Role</th>
-                      <th className="px-4 py-2 text-left font-medium text-secondary-700">Status</th>
-                      <th className="px-4 py-2 text-left font-medium text-secondary-700">Last Login</th>
-                      <th className="px-4 py-2 text-left font-medium text-secondary-700">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+              <>
+                {/* Mobile View */}
+                <div className="block lg:hidden">
+                  <div className="space-y-4">
                     {filteredUsers.map((user) => (
-                      <tr key={user.id} className="border-b border-secondary-100 hover:bg-secondary-50">
-                        <td className="px-4 py-3 font-medium">{user.username}</td>
-                        <td className="px-4 py-3 text-secondary-700">{user.email}</td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            user.role === 'admin' 
-                              ? 'bg-primary-100 text-primary-800' 
-                              : user.role === 'garage_owner'
-                                ? 'bg-accent-100 text-accent-800'
-                                : 'bg-secondary-100 text-secondary-800'
-                          }`}>
-                            {user.role === 'garage_owner' ? 'Garage Owner' : user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            user.status === 'active' 
-                              ? 'bg-success-100 text-success-800' 
-                              : 'bg-error-100 text-error-800'
-                          }`}>
-                            {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-secondary-700">{formatDate(user.last_login)}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <button
-                              className="text-primary-600 hover:text-primary-800"
-                              title="View User Details"
-                              onClick={() => viewUserDetails(user)}
-                            >
-                              <Eye size={16} />
-                            </button>
-                            <button
-                              className="text-primary-600 hover:text-primary-800"
-                              title="Change Role"
-                              onClick={() => openRoleChangeModal(user)}
-                            >
-                              <Shield size={16} />
-                            </button>
-                            <button
-                              className={`${user.status === 'active' ? 'text-error-600 hover:text-error-800' : 'text-success-600 hover:text-success-800'}`}
-                              title={user.status === 'active' ? 'Ban User' : 'Activate User'}
-                              onClick={() => handleToggleUserStatus(user.id)}
-                            >
-                              {user.status === 'active' ? <Ban size={16} /> : <RefreshCw size={16} />}
-                            </button>
+                      <div 
+                        key={user.id} 
+                        className="bg-white rounded-xl shadow-sm border border-secondary-100 overflow-hidden hover:shadow-md transition-shadow duration-200"
+                      >
+                        {/* Header Section */}
+                        <div className="p-4 border-b border-secondary-100 bg-secondary-50/50">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-secondary-900">{user.username}</span>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                user.role === 'admin' 
+                                  ? 'bg-primary-100 text-primary-800' 
+                                  : user.role === 'garage_owner'
+                                    ? 'bg-accent-100 text-accent-800'
+                                    : 'bg-secondary-100 text-secondary-800'
+                              }`}>
+                                {user.role === 'garage_owner' ? 'Garage Owner' : user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <button
+                                className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-white text-primary-600 hover:text-primary-700 transition-colors duration-200"
+                                title="View User Details"
+                                onClick={() => viewUserDetails(user)}
+                              >
+                                <Eye size={16} />
+                              </button>
+                              <button
+                                className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-white text-primary-600 hover:text-primary-700 transition-colors duration-200"
+                                title="Change Role"
+                                onClick={() => openRoleChangeModal(user)}
+                              >
+                                <Shield size={16} />
+                              </button>
+                              <button
+                                className={`inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-white ${
+                                  user.status === 'active' 
+                                    ? 'text-error-600 hover:text-error-800' 
+                                    : 'text-success-600 hover:text-success-800'
+                                }`}
+                                title={user.status === 'active' ? 'Ban User' : 'Activate User'}
+                                onClick={() => handleToggleUserStatus(user.id)}
+                              >
+                                {user.status === 'active' ? <Ban size={16} /> : <RefreshCw size={16} />}
+                              </button>
+                            </div>
                           </div>
-                        </td>
-                      </tr>
+                          
+                          <div className="flex flex-col gap-1 text-sm text-secondary-600">
+                            <div className="flex items-center gap-2">
+                              <span>Email:</span>
+                              <span className="font-medium text-secondary-800">{user.email}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span>Status:</span>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                user.status === 'active' 
+                                  ? 'bg-success-100 text-success-800' 
+                                  : 'bg-error-100 text-error-800'
+                              }`}>
+                                {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Details Section */}
+                        <div className="p-4 bg-white">
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <span className="text-secondary-500">Created At</span>
+                              <p className="font-medium text-secondary-800">{formatDate(user.created_at)}</p>
+                            </div>
+                            <div>
+                              <span className="text-secondary-500">Last Login</span>
+                              <p className="font-medium text-secondary-800">{formatDate(user.last_login)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </div>
+                </div>
+
+                {/* Desktop View */}
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-secondary-50">
+                        <th className="px-4 py-2 text-left font-medium text-secondary-700">Username</th>
+                        <th className="px-4 py-2 text-left font-medium text-secondary-700">Email</th>
+                        <th className="px-4 py-2 text-left font-medium text-secondary-700">Role</th>
+                        <th className="px-4 py-2 text-left font-medium text-secondary-700">Status</th>
+                        <th className="px-4 py-2 text-left font-medium text-secondary-700">Last Login</th>
+                        <th className="px-4 py-2 text-left font-medium text-secondary-700">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredUsers.map((user) => (
+                        <tr key={user.id} className="border-b border-secondary-100 hover:bg-secondary-50">
+                          <td className="px-4 py-3 font-medium">{user.username}</td>
+                          <td className="px-4 py-3 text-secondary-700">{user.email}</td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              user.role === 'admin' 
+                                ? 'bg-primary-100 text-primary-800' 
+                                : user.role === 'garage_owner'
+                                  ? 'bg-accent-100 text-accent-800'
+                                  : 'bg-secondary-100 text-secondary-800'
+                            }`}>
+                              {user.role === 'garage_owner' ? 'Garage Owner' : user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              user.status === 'active' 
+                                ? 'bg-success-100 text-success-800' 
+                                : 'bg-error-100 text-error-800'
+                            }`}>
+                              {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-secondary-700">{formatDate(user.last_login)}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <button
+                                className="text-primary-600 hover:text-primary-800"
+                                title="View User Details"
+                                onClick={() => viewUserDetails(user)}
+                              >
+                                <Eye size={16} />
+                              </button>
+                              <button
+                                className="text-primary-600 hover:text-primary-800"
+                                title="Change Role"
+                                onClick={() => openRoleChangeModal(user)}
+                              >
+                                <Shield size={16} />
+                              </button>
+                              <button
+                                className={`${user.status === 'active' ? 'text-error-600 hover:text-error-800' : 'text-success-600 hover:text-success-800'}`}
+                                title={user.status === 'active' ? 'Ban User' : 'Activate User'}
+                                onClick={() => handleToggleUserStatus(user.id)}
+                              >
+                                {user.status === 'active' ? <Ban size={16} /> : <RefreshCw size={16} />}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </>
         )}

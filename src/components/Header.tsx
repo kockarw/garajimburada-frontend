@@ -180,7 +180,7 @@ const Header: React.FC = () => {
         
         {/* Mobile Menu */}
         <div 
-          className={`md:hidden fixed inset-x-0 top-0 h-[50vh] bg-white z-50 shadow-xl transform transition-transform duration-300 ease-in-out ${
+          className={`md:hidden fixed inset-x-0 top-0 h-[60vh] bg-white z-50 shadow-xl transform transition-transform duration-300 ease-in-out ${
             isMenuOpen ? 'translate-y-0' : '-translate-y-full'
           }`}
         >
@@ -199,7 +199,7 @@ const Header: React.FC = () => {
           </div>
 
           {/* Mobile Menu Content */}
-          <div className="p-4 overflow-y-auto h-[calc(50vh-60px)]">
+          <div className="p-4 overflow-y-auto h-[calc(60vh-60px)]">
             {user ? (
               <>
                 {/* User Profile Section */}
@@ -226,9 +226,19 @@ const Header: React.FC = () => {
                 </div>
 
                 {/* Quick Actions */}
-                <div className="mb-6 transform transition-all duration-300 delay-150 ${
+                <div className={`mb-6 transform transition-all duration-300 delay-150 ${
                   isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'
-                }">
+                }`}>
+                  {user.is_admin && (
+                    <Link 
+                      to="/admin" 
+                      className="inline-flex w-full items-center justify-center gap-2 bg-red-600 text-white px-4 py-3 rounded-lg mb-3 hover:bg-red-700"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Shield size={18} />
+                      <span>Admin Panel</span>
+                    </Link>
+                  )}
                   <Link 
                     to="/add-garage" 
                     className="btn btn-primary flex items-center justify-center gap-2 py-3 transition-colors duration-200 w-full"
@@ -240,9 +250,9 @@ const Header: React.FC = () => {
                 </div>
 
                 {/* Navigation Links */}
-                <div className="space-y-1 transform transition-all duration-300 delay-200 ${
+                <div className={`space-y-1 transform transition-all duration-300 delay-200 ${
                   isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'
-                }">
+                }`}>
                   <Link 
                     to="/" 
                     className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-secondary-50 text-secondary-700"
@@ -260,17 +270,6 @@ const Header: React.FC = () => {
                     <Warehouse size={20} />
                     <span>Garajlarım</span>
                   </Link>
-
-                  {user.is_admin && (
-                    <Link 
-                      to="/admin" 
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-secondary-50 text-secondary-700"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <Shield size={20} />
-                      <span>Admin Panel</span>
-                    </Link>
-                  )}
 
                   <Link 
                     to="/account" 

@@ -200,9 +200,9 @@ const CommentModerationTab: React.FC = () => {
       <div className="p-4">
         <div className="flex flex-col md:flex-row gap-4 mb-4">
           <div className="flex-1">
-            <div className="flex">
+            <div className="flex flex-col sm:flex-row gap-2">
               <select
-                className="rounded-l-md border border-secondary-300 py-2 px-3 bg-white text-secondary-700"
+                className="rounded-md border border-secondary-300 py-2 px-3 bg-white text-secondary-700 sm:rounded-l-md sm:rounded-r-none"
                 value={searchType}
                 onChange={handleSearchTypeChange}
               >
@@ -215,7 +215,7 @@ const CommentModerationTab: React.FC = () => {
                   placeholder={`Search by ${searchType === 'garage' ? 'garage name' : 'username'}...`}
                   value={searchQuery}
                   onChange={handleSearch}
-                  className="input rounded-l-none w-full pl-10"
+                  className="input w-full pl-10 sm:rounded-l-none"
                 />
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary-400" size={18} />
               </div>
@@ -223,16 +223,16 @@ const CommentModerationTab: React.FC = () => {
           </div>
           
           <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="show_reported"
-              checked={showReportedOnly}
-              onChange={() => setShowReportedOnly(!showReportedOnly)}
-              className="mr-2"
-            />
-            <label htmlFor="show_reported" className="flex items-center text-secondary-700">
-              <AlertTriangle size={16} className="text-warning-500 mr-2" />
-              Show reported comments only
+            <label htmlFor="show_reported" className="flex items-center gap-2 text-secondary-700 cursor-pointer">
+              <input
+                type="checkbox"
+                id="show_reported"
+                checked={showReportedOnly}
+                onChange={() => setShowReportedOnly(!showReportedOnly)}
+                className="rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
+              />
+              <AlertTriangle size={16} className="text-warning-500" />
+              <span className="text-sm">Show reported only</span>
             </label>
           </div>
         </div>
@@ -248,84 +248,184 @@ const CommentModerationTab: React.FC = () => {
                 <p className="text-secondary-500">No comments found matching your criteria.</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {filteredComments.map((comment) => (
-                  <div 
-                    key={comment.id} 
-                    className={`border rounded-lg p-4 ${
-                      comment.is_reported 
-                        ? 'border-warning-300 bg-warning-50' 
-                        : 'border-secondary-200 bg-white'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{comment.user_name}</span>
-                          <span className="text-secondary-500">on</span>
-                          <span className="font-medium text-primary-600">{comment.garage_name}</span>
-                          {comment.is_helpful && (
-                            <span className="bg-success-100 text-success-800 text-xs px-2 py-0.5 rounded-full font-medium">
-                              Helpful
+              <>
+                {/* Mobile View */}
+                <div className="block lg:hidden">
+                  <div className="space-y-4">
+                    {filteredComments.map((comment) => (
+                      <div 
+                        key={comment.id} 
+                        className={`bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow duration-200 ${
+                          comment.is_reported 
+                            ? 'border-warning-300' 
+                            : 'border-secondary-100'
+                        }`}
+                      >
+                        {/* Header Section */}
+                        <div className={`p-4 border-b ${
+                          comment.is_reported 
+                            ? 'border-warning-200 bg-warning-50/50' 
+                            : 'border-secondary-100 bg-white'
+                        }`}>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-secondary-900">{comment.user_name}</span>
+                              {comment.is_helpful && (
+                                <span className="bg-success-100 text-success-800 text-xs px-2 py-0.5 rounded-full font-medium">
+                                  Helpful
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <button
+                                className={`inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-white text-primary-600 hover:text-primary-700 transition-colors duration-200 ${
+                                  comment.is_helpful ? 'bg-primary-100' : ''
+                                }`}
+                                title={comment.is_helpful ? 'Remove helpful mark' : 'Mark as helpful'}
+                                onClick={() => handleToggleHelpful(comment.id)}
+                              >
+                                <ThumbsUp size={16} />
+                              </button>
+                              <button
+                                className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-white text-primary-600 hover:text-primary-700 transition-colors duration-200"
+                                title="Edit Comment"
+                                onClick={() => handleEditComment(comment)}
+                              >
+                                <Edit size={16} />
+                              </button>
+                              <button
+                                className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-white text-error-600 hover:text-error-700 transition-colors duration-200"
+                                title="Delete Comment"
+                                onClick={() => handleDeleteComment(comment.id)}
+                              >
+                                <Trash size={16} />
+                              </button>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-1 text-secondary-600">
+                              <span>on</span>
+                              <span className="font-medium text-primary-600">{comment.garage_name}</span>
+                            </div>
+                            <span className="text-secondary-500 text-xs">
+                              {formatDate(comment.created_at)}
                             </span>
-                          )}
+                          </div>
                         </div>
-                        <div className="flex items-center mt-1">
-                          <div className="mr-2">
+
+                        {/* Rating and Content Section */}
+                        <div className="p-4 bg-white">
+                          <div className="flex items-center mb-2">
                             {renderStars(comment.rating)}
                           </div>
-                          <span className="text-sm text-secondary-500">
-                            {formatDate(comment.created_at)}
-                          </span>
+                          <p className="text-secondary-700">{comment.content}</p>
                         </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <button
-                          className={`text-primary-600 hover:text-primary-800 ${comment.is_helpful ? 'bg-primary-100' : ''} p-1 rounded`}
-                          title={comment.is_helpful ? 'Remove helpful mark' : 'Mark as helpful'}
-                          onClick={() => handleToggleHelpful(comment.id)}
-                        >
-                          <ThumbsUp size={16} />
-                        </button>
-                        <button
-                          className="text-primary-600 hover:text-primary-800 p-1 rounded"
-                          title="Edit Comment"
-                          onClick={() => handleEditComment(comment)}
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          className="text-error-600 hover:text-error-800 p-1 rounded"
-                          title="Delete Comment"
-                          onClick={() => handleDeleteComment(comment.id)}
-                        >
-                          <Trash size={16} />
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <p className="text-secondary-700 mb-2">{comment.content}</p>
-                    
-                    {comment.is_reported && (
-                      <div className="mt-3 pt-2 border-t border-warning-200">
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center text-warning-600">
-                            <AlertTriangle size={16} className="mr-2" />
-                            <span className="text-sm font-medium">This comment has been reported</span>
+
+                        {/* Report Section */}
+                        {comment.is_reported && (
+                          <div className="px-4 py-3 bg-warning-50 border-t border-warning-200">
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center text-warning-600">
+                                <AlertTriangle size={16} className="mr-2" />
+                                <span className="text-sm font-medium">Reported comment</span>
+                              </div>
+                              <button
+                                className="text-sm text-primary-600 hover:text-primary-800 font-medium"
+                                onClick={() => handleClearReport(comment.id)}
+                              >
+                                Dismiss report
+                              </button>
+                            </div>
                           </div>
-                          <button
-                            className="text-sm text-primary-600 hover:text-primary-800"
-                            onClick={() => handleClearReport(comment.id)}
-                          >
-                            Dismiss report
-                          </button>
-                        </div>
+                        )}
                       </div>
-                    )}
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+
+                {/* Desktop View */}
+                <div className="hidden lg:block">
+                  <div className="space-y-4">
+                    {filteredComments.map((comment) => (
+                      <div 
+                        key={comment.id} 
+                        className={`border rounded-lg p-4 ${
+                          comment.is_reported 
+                            ? 'border-warning-300 bg-warning-50' 
+                            : 'border-secondary-200 bg-white'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{comment.user_name}</span>
+                              <span className="text-secondary-500">on</span>
+                              <span className="font-medium text-primary-600">{comment.garage_name}</span>
+                              {comment.is_helpful && (
+                                <span className="bg-success-100 text-success-800 text-xs px-2 py-0.5 rounded-full font-medium">
+                                  Helpful
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center mt-1">
+                              <div className="mr-2">
+                                {renderStars(comment.rating)}
+                              </div>
+                              <span className="text-sm text-secondary-500">
+                                {formatDate(comment.created_at)}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <button
+                              className={`text-primary-600 hover:text-primary-800 ${comment.is_helpful ? 'bg-primary-100' : ''} p-1 rounded`}
+                              title={comment.is_helpful ? 'Remove helpful mark' : 'Mark as helpful'}
+                              onClick={() => handleToggleHelpful(comment.id)}
+                            >
+                              <ThumbsUp size={16} />
+                            </button>
+                            <button
+                              className="text-primary-600 hover:text-primary-800 p-1 rounded"
+                              title="Edit Comment"
+                              onClick={() => handleEditComment(comment)}
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              className="text-error-600 hover:text-error-800 p-1 rounded"
+                              title="Delete Comment"
+                              onClick={() => handleDeleteComment(comment.id)}
+                            >
+                              <Trash size={16} />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <p className="text-secondary-700 mb-2">{comment.content}</p>
+                        
+                        {comment.is_reported && (
+                          <div className="mt-3 pt-2 border-t border-warning-200">
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center text-warning-600">
+                                <AlertTriangle size={16} className="mr-2" />
+                                <span className="text-sm font-medium">This comment has been reported</span>
+                              </div>
+                              <button
+                                className="text-sm text-primary-600 hover:text-primary-800"
+                                onClick={() => handleClearReport(comment.id)}
+                              >
+                                Dismiss report
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
             )}
           </>
         )}
