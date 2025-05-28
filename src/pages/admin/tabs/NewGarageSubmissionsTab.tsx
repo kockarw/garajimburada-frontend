@@ -22,7 +22,11 @@ const NewGarageSubmissionsTab: React.FC = () => {
   const fetchPendingSubmissions = async () => {
     try {
       setLoading(true);
-      const garages = await garageService.getAllGarages({ status: 'pending' });
+      const garages = await garageService.getAllGarages({ 
+        status: 'pending',
+        is_active: false // Only get inactive garages
+      });
+      console.log('Fetched pending submissions:', garages.map(g => ({ id: g.id, status: g.status, name: g.name })));
       setSubmissions(garages);
       setError(null);
     } catch (err) {
@@ -179,7 +183,7 @@ const NewGarageSubmissionsTab: React.FC = () => {
                             </button>
                             <button
                               className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-white text-primary-600 hover:text-primary-700 transition-colors duration-200"
-                              onClick={() => handleViewDetails(submission.ad_id)}
+                              onClick={() => handleViewDetails(submission.id)}
                               title="View Details"
                               disabled={loading}
                             >
@@ -232,7 +236,7 @@ const NewGarageSubmissionsTab: React.FC = () => {
                               <button
                                 className="text-primary-600 hover:text-primary-800"
                                 title="View Details"
-                                onClick={() => handleViewDetails(submission.ad_id)}
+                                onClick={() => handleViewDetails(submission.id)}
                                 disabled={loading}
                               >
                                 <Eye size={18} />

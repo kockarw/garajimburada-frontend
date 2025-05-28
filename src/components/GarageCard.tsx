@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Star, MapPin, Wrench, Calendar, ChevronRight } from 'lucide-react';
+import { Star, MapPin, Wrench, Calendar, ChevronRight, Shield, Check } from 'lucide-react';
 import { GarageResponse } from '../services/garage.service';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -105,7 +105,14 @@ const GarageCard: React.FC<GarageCardProps> = ({ garage }) => {
         <div className="h-24 border-l border-secondary-200 mr-4"></div>
         
         <div className="w-1/6 mr-4">
-          <h3 className="text-base font-semibold text-secondary-900">{garage.name}</h3>
+          <h3 className="text-base font-semibold text-secondary-900 flex items-center gap-1.5">
+            {garage.is_verified && (
+              <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                <Check size={12} className="text-white" strokeWidth={3} />
+              </div>
+            )}
+            {garage.name}
+          </h3>
           <div className="text-xs text-secondary-500 mt-1">
             ADVERT NO: {garage.ad_id}
           </div>
@@ -147,7 +154,14 @@ const GarageCard: React.FC<GarageCardProps> = ({ garage }) => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
           <div className="absolute bottom-4 left-4 right-4">
-            <h3 className="text-white text-lg font-semibold mb-1">{garage.name}</h3>
+            <h3 className="text-white text-lg font-semibold mb-1 flex items-center gap-1.5">
+              {garage.is_verified && (
+                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                  <Check size={14} className="text-white" strokeWidth={3} />
+                </div>
+              )}
+              {garage.name}
+            </h3>
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <div className="flex mr-2">

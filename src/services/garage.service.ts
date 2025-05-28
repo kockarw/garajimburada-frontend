@@ -2,7 +2,7 @@ import api from './api';
 import { Garage, WorkingHours, GalleryImage, Review } from '../mockdata/types';
 
 // Garage status type
-export type GarageStatus = 'approved' | 'pending' | 'rejected' | 'inactive';
+export type GarageStatus = 'approved' | 'pending' | 'rejected' | 'inactive' | 'all';
 
 // Response types based on API structure
 export interface GarageResponse extends Garage {
@@ -70,9 +70,12 @@ class GarageService {
 
   async getGarageById(id: string): Promise<GarageResponse> {
     try {
+      console.log('Making API request to get garage by ID:', id);
       const response = await api.get<GarageResponse>(`/garages/${id}`);
+      console.log('Received garage data:', response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error getting garage by ID:', error.response?.data || error);
       throw this.handleError(error);
     }
   }
@@ -166,7 +169,14 @@ class GarageService {
 
   async getUserGarages(status?: GarageStatus): Promise<GarageListResponse> {
     try {
-      const response = await api.get<GarageListResponse>(`/garages/user/garages${status ? `?status=${status}` : ''}`);
+      console.log('Requesting garages with status:', status); // Debug log
+      
+      // Status parametresini query string'e ekle
+      const queryParams = status ? `?status=${status}` : '';
+      const response = await api.get<GarageListResponse>(`/garages/user/garages${queryParams}`);
+      
+      console.log('API response:', response.data); // Debug log
+      
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -175,12 +185,16 @@ class GarageService {
 
   async updateGarageStatus(garageId: string, status: GarageStatus, rejectionReason?: string): Promise<GarageResponse> {
     try {
-      const response = await api.patch<{message: string, garage: GarageResponse}>(`/garages/${garageId}/status`, {
+      console.log('Updating garage status:', { garageId, status, rejectionReason });
+      const response = await api.put<{message: string, garage: GarageResponse}>(`/garages/${garageId}`, {
         status,
-        rejection_reason: rejectionReason
+        rejection_reason: rejectionReason,
+        is_active: status === 'approved'
       });
+      console.log('Update response:', response.data);
       return response.data.garage;
     } catch (error) {
+      console.error('Error updating garage status:', error);
       throw this.handleError(error);
     }
   }

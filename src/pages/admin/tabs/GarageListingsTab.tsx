@@ -133,25 +133,48 @@ const GarageListingsTab: React.FC = () => {
   };
 
   const handleEditGarage = (id: string) => {
-    navigate(`/edit-garage/${id}`);
+    try {
+      console.log('Navigating to edit garage with ID:', id);
+      const garage = garages.find(g => g.id === id);
+      if (!garage) {
+        showToast('Garage not found', 'error');
+        return;
+      }
+      navigate(`/edit-garage/${id}`);
+    } catch (error) {
+      console.error('Error navigating to edit garage:', error);
+      showToast('Failed to navigate to edit page', 'error');
+    }
   };
 
   // Updated handlers with API calls
   const confirmToggleActive = async (id: string) => {
     const garage = garages.find(g => g.id === id);
-    if (!garage) return;
+    if (!garage) {
+      showToast('Garage not found', 'error');
+      return;
+    }
     
     setLoading(true);
     try {
+      console.log('Toggling garage status:', { id, currentStatus: garage.status });
+      
+      // If the garage is currently approved, set it to inactive
+      // If it's inactive or any other status, set it to approved
       const newStatus = garage.status === 'approved' ? 'inactive' : 'approved';
-      await garageService.updateGarageStatus(id, newStatus);
+      
+      // Update the garage status using admin endpoint
+      const updatedGarage = await garageService.updateGarageStatus(id, newStatus);
+      console.log('Updated garage:', updatedGarage);
       
       // Refresh the entire list to get the latest data
       await fetchGarages();
       
-      showToast(`Garage status updated to ${newStatus} successfully`, 'success');
-    } catch (err) {
-      showToast(`Failed to update garage status`, 'error');
+      showToast(`Garage ${newStatus === 'approved' ? 'activated' : 'deactivated'} successfully`, 'success');
+    } catch (error: any) {
+      console.error('Error toggling garage status:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update garage status';
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
       closeModal();
@@ -164,16 +187,16 @@ const GarageListingsTab: React.FC = () => {
     
     setLoading(true);
     try {
-      const updatedGarage = await garageService.updateGarageDetails(id, {
-        is_verified: !garage.is_verified
-      });
+      // Update the garage status using updateGarageStatus
+      const newStatus = garage.is_verified ? 'inactive' : 'approved';
+      await garageService.updateGarageStatus(id, newStatus);
       
-      setGarages(prevGarages => 
-        prevGarages.map(g => g.id === id ? updatedGarage : g)
-      );
+      // Refresh the list to get the latest data
+      await fetchGarages();
       
       showToast(`Garage ${!garage.is_verified ? 'verified' : 'unverified'} successfully`, 'success');
     } catch (err) {
+      console.error('Error toggling garage verification:', err);
       showToast(`Failed to ${!garage.is_verified ? 'verify' : 'unverify'} garage`, 'error');
     } finally {
       setLoading(false);
@@ -333,6 +356,18 @@ const GarageListingsTab: React.FC = () => {
                     <p className="text-sm text-secondary-900">{garage.city}</p>
                   </div>
                 </div>
+                <div className="flex gap-2">
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                    garage.status === 'approved' ? 'bg-success-100 text-success-800' : 'bg-error-100 text-error-800'
+                  }`}>
+                    {garage.status === 'approved' ? 'Active' : 'Inactive'}
+                  </span>
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                    garage.is_verified ? 'bg-primary-100 text-primary-800' : 'bg-secondary-100 text-secondary-800'
+                  }`}>
+                    {garage.is_verified ? 'Verified' : 'Unverified'}
+                  </span>
+                </div>
               </div>
 
               {/* Actions Section */}
@@ -355,8 +390,8 @@ const GarageListingsTab: React.FC = () => {
                   <button
                     className={`inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-white transition-colors duration-200 ${
                       garage.status === 'approved' 
-                        ? 'text-error-600 hover:text-error-700' 
-                        : 'text-success-600 hover:text-success-700'
+                        ? 'text-success-600 hover:text-success-700' 
+                        : 'text-error-600 hover:text-error-700'
                     }`}
                     onClick={() => handleToggleActive(garage.id)}
                     title={garage.status === 'approved' ? 'Deactivate' : 'Activate'}
@@ -366,8 +401,8 @@ const GarageListingsTab: React.FC = () => {
                   <button
                     className={`inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-white transition-colors duration-200 ${
                       garage.is_verified 
-                        ? 'text-error-600 hover:text-error-700' 
-                        : 'text-success-600 hover:text-success-700'
+                        ? 'text-success-600 hover:text-success-700' 
+                        : 'text-secondary-600 hover:text-secondary-700'
                     }`}
                     onClick={() => handleToggleVerified(garage.id)}
                     title={garage.is_verified ? 'Remove Verification' : 'Verify'}
@@ -420,21 +455,28 @@ const GarageListingsTab: React.FC = () => {
                 <td className="p-4">{garage.ad_id}</td>
                 <td className="p-4">{garage.city}</td>
                 <td className="p-4">
-                  <span className={`px-2 py-1 rounded-full text-sm ${getStatusStyle(garage.status)}`}>
-                    {getStatusText(garage.status)}
-                  </span>
+                  <div className="flex gap-2">
+                    <span className={`px-2 py-1 rounded-full text-sm ${getStatusStyle(garage.status)}`}>
+                      {getStatusText(garage.status)}
+                    </span>
+                    <span className={`px-2 py-1 rounded-full text-sm ${
+                      garage.is_verified ? 'bg-primary-100 text-primary-800' : 'bg-secondary-100 text-secondary-800'
+                    }`}>
+                      {garage.is_verified ? 'Verified' : 'Unverified'}
+                    </span>
+                  </div>
                 </td>
                 <td className="p-4">
                   <div className="flex items-center gap-2">
                     <button
-                      className="p-1 hover:bg-secondary-100 rounded-full"
+                      className="p-1 hover:bg-secondary-100 rounded-full text-secondary-700 hover:text-primary-600"
                       onClick={() => handleViewDetails(garage.id)}
                       title="View Details"
                     >
                       <Eye size={18} />
                     </button>
                     <button
-                      className="p-1 hover:bg-secondary-100 rounded-full"
+                      className="p-1 hover:bg-secondary-100 rounded-full text-secondary-700 hover:text-primary-600"
                       onClick={() => handleEditGarage(garage.id)}
                       title="Edit"
                     >
@@ -442,7 +484,9 @@ const GarageListingsTab: React.FC = () => {
                     </button>
                     <button
                       className={`p-1 hover:bg-secondary-100 rounded-full ${
-                        garage.status === 'approved' ? 'text-error-600' : 'text-success-600'
+                        garage.status === 'approved' 
+                          ? 'text-success-600 hover:text-success-700' 
+                          : 'text-error-600 hover:text-error-700'
                       }`}
                       onClick={() => handleToggleActive(garage.id)}
                       title={garage.status === 'approved' ? 'Deactivate' : 'Activate'}
@@ -451,7 +495,9 @@ const GarageListingsTab: React.FC = () => {
                     </button>
                     <button
                       className={`p-1 hover:bg-secondary-100 rounded-full ${
-                        garage.is_verified ? 'text-error-600' : 'text-success-600'
+                        garage.is_verified 
+                          ? 'text-success-600 hover:text-success-700' 
+                          : 'text-secondary-600 hover:text-secondary-700'
                       }`}
                       onClick={() => handleToggleVerified(garage.id)}
                       title={garage.is_verified ? 'Remove Verification' : 'Verify'}
@@ -459,7 +505,7 @@ const GarageListingsTab: React.FC = () => {
                       <Shield size={18} />
                     </button>
                     <button
-                      className="p-1 hover:bg-secondary-100 rounded-full text-error-600"
+                      className="p-1 hover:bg-secondary-100 rounded-full text-error-600 hover:text-error-700"
                       onClick={() => handleDeleteGarage(garage.id)}
                       title="Delete"
                     >

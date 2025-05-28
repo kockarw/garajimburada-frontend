@@ -154,19 +154,24 @@ const EditGaragePage: React.FC = () => {
       
       try {
         if (!id) {
-          navigate('/my-garage-ads');
+          console.error('No garage ID provided');
+          showToast('No garage ID provided', 'error');
+          user?.is_admin ? navigate('/admin/garages') : navigate('/my-garage-ads');
           return;
         }
         
+        console.log('Fetching garage data for ID:', id);
         // Fetch garage data from API
         const garage = await garageService.getGarageById(id);
         
         if (!garage) {
+          console.error('Garage not found for ID:', id);
           showToast('Garage not found', 'error');
-          navigate('/my-garage-ads');
+          user?.is_admin ? navigate('/admin/garages') : navigate('/my-garage-ads');
           return;
         }
         
+        console.log('Successfully fetched garage data:', garage);
         setGarageData(garage);
         
         // Prepare form data
@@ -186,17 +191,18 @@ const EditGaragePage: React.FC = () => {
           coverImageUrl: garage.image_url || '',
           workingHours: garage.working_hours ? convertAPIToWorkingHours(garage.working_hours) : defaultWorkingHours
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching garage data:', error);
-        showToast('Failed to load garage data', 'error');
-        navigate('/my-garage-ads');
+        const errorMessage = error.response?.data?.message || error.message || 'Failed to load garage data';
+        showToast(errorMessage, 'error');
+        user?.is_admin ? navigate('/admin/garages') : navigate('/my-garage-ads');
       } finally {
         setInitialLoading(false);
       }
     };
     
     fetchGarageData();
-  }, [id, navigate, showToast]);
+  }, [id, navigate, showToast, user?.is_admin]);
 
   const steps = [
     { id: 1, title: 'General Information' },
@@ -216,6 +222,30 @@ const EditGaragePage: React.FC = () => {
     if (currentStep > 1) {
       setCurrentStep(prevStep => prevStep - 1);
     }
+  };
+
+  // Get error message for inputs
+  const getInputError = (field: string) => {
+    switch (field) {
+      case 'name':
+        if (formData.name.length > 32) {
+          return 'Garage name cannot exceed 32 characters';
+        }
+        return '';
+      case 'email':
+        if (formData.email && !isValidEmail(formData.email)) {
+          return 'Please enter a valid email address';
+        }
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  // Email validation helper
+  const isValidEmail = (email: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
   };
 
   const handleSubmit = async () => {
@@ -338,6 +368,7 @@ const EditGaragePage: React.FC = () => {
           <GeneralInfoStep
             formData={formData}
             setFormData={setFormData}
+            getInputError={getInputError}
           />
         );
       case 2:

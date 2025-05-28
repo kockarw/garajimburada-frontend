@@ -58,7 +58,12 @@ const MyGarageAdsPage: React.FC = () => {
     rejected: 0,
     inactive: 0
   });
-  const [statusFilter, setStatusFilter] = useState<GarageStatus | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<GarageStatus | 'all'>(() => {
+    // URL'den başlangıç durumunu al
+    const params = new URLSearchParams(location.search);
+    const status = params.get('status');
+    return (status as GarageStatus | 'all') || 'all';
+  });
   const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, garage: any | null}>({
     isOpen: false,
     garage: null
@@ -74,27 +79,44 @@ const MyGarageAdsPage: React.FC = () => {
     const loadGarages = async () => {
       try {
         setLoading(true);
-        const response = await garageService.getUserGarages(statusFilter === 'all' ? undefined : statusFilter);
+        console.log('Loading garages with status filter:', statusFilter); // Debug log
+        
+        const response = await garageService.getUserGarages(
+          statusFilter === 'all' ? undefined : statusFilter
+        );
+        
+        console.log('Filtered garages:', {
+          filter: statusFilter,
+          count: response.garages.length,
+          statuses: response.garages.map(g => g.status)
+        }); // Debug log
+        
         setUserGarages(response.garages);
         setStatusCounts(response.statusCounts);
       } catch (error) {
-        showToast('Failed to load garages', 'error');
         console.error('Error loading garages:', error);
+        showToast('Failed to load garages', 'error');
       } finally {
         setLoading(false);
       }
     };
 
     loadGarages();
-  }, [statusFilter]);
+  }, [statusFilter, showToast]);
 
   // Parse the query parameter for status filter
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const statusParam = params.get('status') as GarageStatus | null;
+    const status = params.get('status');
     
-    if (statusParam && ['pending', 'approved', 'rejected', 'inactive'].includes(statusParam)) {
-      setStatusFilter(statusParam);
+    console.log('URL status parameter:', status); // Debug log
+    
+    if (status === null) {
+      console.log('Setting status to "all" (null in URL)'); // Debug log
+      setStatusFilter('all');
+    } else if (['all', 'approved', 'pending', 'rejected', 'inactive'].includes(status)) {
+      console.log('Setting status from URL:', status); // Debug log
+      setStatusFilter(status as GarageStatus | 'all');
     }
   }, [location.search]);
 
@@ -134,6 +156,11 @@ const MyGarageAdsPage: React.FC = () => {
     }
   };
 
+  const handleTabClick = (newStatus: GarageStatus | 'all') => {
+    setStatusFilter(newStatus);
+    navigate(newStatus === 'all' ? '/my-garage-ads' : `/my-garage-ads?status=${newStatus}`);
+  };
+
   const handleStatusChange = async (id: string, newStatus: GarageStatus) => {
     try {
       setLoading(true);
@@ -162,20 +189,6 @@ const MyGarageAdsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Filter garages based on selected status
-  const filteredGarages = statusFilter === 'all' 
-    ? userGarages 
-    : userGarages.filter(garage => garage.status === statusFilter);
-
-  // Count garages by status for tabs
-  const countByStatus = {
-    all: userGarages.length,
-    approved: userGarages.filter(g => g.status === 'approved').length,
-    pending: userGarages.filter(g => g.status === 'pending').length,
-    rejected: userGarages.filter(g => g.status === 'rejected').length,
-    inactive: userGarages.filter(g => g.status === 'inactive').length
   };
 
   const getStatusColor = (status: GarageStatus) => {
@@ -225,66 +238,61 @@ const MyGarageAdsPage: React.FC = () => {
       {/* Status Filter */}
       <div className="mb-6">
         <div className="grid grid-cols-5 gap-1 md:gap-2">
-          <Link
-            to="/my-garage-ads"
+          <button
+            onClick={() => handleTabClick('all')}
             className={`flex flex-col items-center justify-center px-2 py-2 rounded-md text-xs md:text-sm font-medium ${
               statusFilter === 'all' 
                 ? 'bg-primary-100 text-primary-800' 
                 : 'bg-secondary-100 text-secondary-600 hover:bg-secondary-200'
             }`}
-            onClick={() => setStatusFilter('all')}
           >
             <span>All</span>
-            <span className="text-xs opacity-75">({countByStatus.all})</span>
-          </Link>
-          <Link
-            to="/my-garage-ads?status=approved"
+            <span className="text-xs opacity-75">({statusCounts.all})</span>
+          </button>
+          <button
+            onClick={() => handleTabClick('approved')}
             className={`flex flex-col items-center justify-center px-2 py-2 rounded-md text-xs md:text-sm font-medium ${
               statusFilter === 'approved' 
                 ? 'bg-success-100 text-success-800' 
                 : 'bg-secondary-100 text-secondary-600 hover:bg-secondary-200'
             }`}
-            onClick={() => setStatusFilter('approved')}
           >
             <span>Approved</span>
-            <span className="text-xs opacity-75">({countByStatus.approved})</span>
-          </Link>
-          <Link
-            to="/my-garage-ads?status=pending"
+            <span className="text-xs opacity-75">({statusCounts.approved})</span>
+          </button>
+          <button
+            onClick={() => handleTabClick('pending')}
             className={`flex flex-col items-center justify-center px-2 py-2 rounded-md text-xs md:text-sm font-medium ${
               statusFilter === 'pending' 
                 ? 'bg-warning-100 text-warning-800' 
                 : 'bg-secondary-100 text-secondary-600 hover:bg-secondary-200'
             }`}
-            onClick={() => setStatusFilter('pending')}
           >
             <span>Pending</span>
-            <span className="text-xs opacity-75">({countByStatus.pending})</span>
-          </Link>
-          <Link
-            to="/my-garage-ads?status=rejected"
+            <span className="text-xs opacity-75">({statusCounts.pending})</span>
+          </button>
+          <button
+            onClick={() => handleTabClick('rejected')}
             className={`flex flex-col items-center justify-center px-2 py-2 rounded-md text-xs md:text-sm font-medium ${
               statusFilter === 'rejected' 
                 ? 'bg-error-100 text-error-800' 
                 : 'bg-secondary-100 text-secondary-600 hover:bg-secondary-200'
             }`}
-            onClick={() => setStatusFilter('rejected')}
           >
             <span>Rejected</span>
-            <span className="text-xs opacity-75">({countByStatus.rejected})</span>
-          </Link>
-          <Link
-            to="/my-garage-ads?status=inactive"
+            <span className="text-xs opacity-75">({statusCounts.rejected})</span>
+          </button>
+          <button
+            onClick={() => handleTabClick('inactive')}
             className={`flex flex-col items-center justify-center px-2 py-2 rounded-md text-xs md:text-sm font-medium ${
               statusFilter === 'inactive' 
                 ? 'bg-secondary-200 text-secondary-800' 
                 : 'bg-secondary-100 text-secondary-600 hover:bg-secondary-200'
             }`}
-            onClick={() => setStatusFilter('inactive')}
           >
             <span>Inactive</span>
-            <span className="text-xs opacity-75">({countByStatus.inactive})</span>
-          </Link>
+            <span className="text-xs opacity-75">({statusCounts.inactive})</span>
+          </button>
         </div>
       </div>
 
@@ -294,7 +302,7 @@ const MyGarageAdsPage: React.FC = () => {
         </div>
       ) : (
         <>
-          {filteredGarages.length === 0 ? (
+          {userGarages.length === 0 ? (
             <div className="card p-8 text-center">
               <AlertCircle size={48} className="mx-auto text-secondary-400 mb-4" />
               <h2 className="text-xl font-semibold mb-2">No Garage Advertisements Found</h2>
@@ -306,7 +314,7 @@ const MyGarageAdsPage: React.FC = () => {
             </div>
           ) : (
             <div className="grid gap-6">
-              {filteredGarages.map(garage => (
+              {userGarages.map(garage => (
                 <div 
                   key={garage.id} 
                   className="card overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-200"

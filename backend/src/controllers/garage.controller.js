@@ -21,7 +21,9 @@ exports.getAllGarages = async (req, res) => {
       city,
       district,
       service,
-      minRating
+      minRating,
+      status,
+      is_active
     } = req.query;
 
     // Search in name or description
@@ -41,9 +43,15 @@ exports.getAllGarages = async (req, res) => {
       filters.services = { [Op.contains]: [service] };
     }
 
-    // Only get active and approved garages
-    filters.is_active = true;
-    filters.status = 'approved';
+    // Filter by status
+    if (status) {
+      filters.status = status;
+    }
+
+    // Filter by active status
+    if (typeof is_active === 'boolean') {
+      filters.is_active = is_active;
+    }
 
     console.log('Applying filters:', filters); // Debug log
 
@@ -68,7 +76,7 @@ exports.getAllGarages = async (req, res) => {
       order: [['create_time', 'DESC']]
     });
 
-    console.log('Found garages:', garages.length); // Debug log
+    console.log('Found garages:', garages.map(g => ({ id: g.id, status: g.status, name: g.name }))); // Debug log
 
     // Filter by minimum rating after fetch (since rating is calculated)
     let result = garages;
@@ -93,8 +101,6 @@ exports.getAllGarages = async (req, res) => {
         garage.dataValues.reviewCount = ratingInfo.reviewCount;
       }
     }
-
-    console.log('Final result count:', result.length); // Debug log
 
     res.status(200).json(result);
   } catch (error) {
@@ -216,7 +222,7 @@ exports.createGarage = async (req, res) => {
     // Generate random ad_id (8 digits)
     const ad_id = Math.floor(10000000 + Math.random() * 90000000).toString();
     
-    // Create garage
+    // Create garage with initial status as 'pending'
     const garage = await Garage.create({
       id: uuidv4(),
       ad_id,
@@ -231,8 +237,8 @@ exports.createGarage = async (req, res) => {
       website,
       services: Array.isArray(services) ? services : [],
       image_url,
-      is_active: req.user.role === 'admin', // Auto-activate for admins
-      is_verified: req.user.role === 'admin', // Auto-verify for admins
+      status: req.user.role === 'admin' ? 'approved' : 'pending',
+      is_active: req.user.role === 'admin',
       coordinates
     }, { transaction });
     
@@ -527,24 +533,16 @@ exports.getUserGarages = async (req, res) => {
     const { status } = req.query;
     const userId = req.user.id;
 
+    console.log('Getting garages for user:', { userId, requestedStatus: status }); // Debug log
+
     let whereClause = { user_id: userId };
     
-    // Add status filter if provided
-    if (status && ['approved', 'pending', 'rejected', 'inactive'].includes(status)) {
-      if (status === 'approved') {
-        whereClause.is_verified = true;
-        whereClause.is_active = true;
-      } else if (status === 'pending') {
-        whereClause.is_verified = false;
-        whereClause.is_active = false;
-      } else if (status === 'rejected') {
-        whereClause.is_verified = false;
-        whereClause.rejection_reason = { [Op.ne]: null };
-      } else if (status === 'inactive') {
-        whereClause.is_verified = true;
-        whereClause.is_active = false;
-      }
+    // Add status filter if provided and not 'all'
+    if (status && status !== 'all') {
+      whereClause.status = status;
     }
+
+    console.log('Using where clause:', whereClause); // Debug log
 
     const garages = await Garage.findAll({
       where: whereClause,
@@ -561,39 +559,38 @@ exports.getUserGarages = async (req, res) => {
       order: [['create_time', 'DESC']]
     });
 
+    console.log('Found garages:', garages.map(g => ({ id: g.id, status: g.status, name: g.name }))); // Debug log
+
     // Get counts for each status
     const statusCounts = {
       all: await Garage.count({ where: { user_id: userId } }),
       approved: await Garage.count({ 
         where: { 
           user_id: userId,
-          is_verified: true,
-          is_active: true
+          status: 'approved'
         }
       }),
       pending: await Garage.count({ 
         where: { 
           user_id: userId,
-          is_verified: false,
-          is_active: false,
-          rejection_reason: null
+          status: 'pending'
         }
       }),
       rejected: await Garage.count({ 
         where: { 
           user_id: userId,
-          is_verified: false,
-          rejection_reason: { [Op.ne]: null }
+          status: 'rejected'
         }
       }),
       inactive: await Garage.count({ 
         where: { 
           user_id: userId,
-          is_verified: true,
-          is_active: false
+          status: 'inactive'
         }
       })
     };
+
+    console.log('Status counts:', statusCounts); // Debug log
 
     res.status(200).json({
       garages,
@@ -617,6 +614,8 @@ exports.updateGarageStatus = async (req, res) => {
     const { status } = req.body;
     const userId = req.user.id;
 
+    console.log('Updating garage status:', { id, status, userId }); // Debug log
+
     // Check if garage exists and belongs to user
     const garage = await Garage.findOne({ 
       where: { 
@@ -629,48 +628,25 @@ exports.updateGarageStatus = async (req, res) => {
       return res.status(404).json({ message: 'Garage not found or unauthorized' });
     }
 
-    // Update status based on the requested status
-    let updateData = {};
-    
-    switch (status) {
-      case 'approved':
-        updateData = {
-          is_verified: true,
-          is_active: true,
-          rejection_reason: null
-        };
-        break;
-      case 'pending':
-        updateData = {
-          is_verified: false,
-          is_active: false,
-          rejection_reason: null
-        };
-        break;
-      case 'rejected':
-        updateData = {
-          is_verified: false,
-          is_active: false,
-          rejection_reason: req.body.rejection_reason || 'Rejected by admin'
-        };
-        break;
-      case 'inactive':
-        updateData = {
-          is_verified: true,
-          is_active: false,
-          rejection_reason: null
-        };
-        break;
-      default:
-        return res.status(400).json({ message: 'Invalid status' });
-    }
+    // Update status directly
+    await garage.update({
+      status: status,
+      is_active: status === 'approved',
+      rejection_reason: status === 'rejected' ? (req.body.rejection_reason || 'Rejected by admin') : null
+    });
 
-    // Update the garage
-    await garage.update(updateData);
+    // Reload garage to get fresh data
+    await garage.reload();
+
+    console.log('Updated garage:', { 
+      id: garage.id, 
+      status: garage.status,
+      is_active: garage.is_active
+    }); // Debug log
 
     res.status(200).json({
       message: 'Garage status updated successfully',
-      garage: await garage.reload()
+      garage: garage
     });
   } catch (error) {
     console.error('Error updating garage status:', error);

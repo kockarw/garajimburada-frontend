@@ -64,17 +64,16 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true
     },
-    is_active: {
-      type: Sequelize.BOOLEAN,
-      defaultValue: false
-    },
-    is_verified: {
-      type: Sequelize.BOOLEAN,
-      defaultValue: false
-    },
     status: {
       type: Sequelize.ENUM('approved', 'pending', 'rejected', 'inactive'),
-      defaultValue: 'pending'
+      defaultValue: 'pending',
+      allowNull: false
+    },
+    is_active: {
+      type: Sequelize.VIRTUAL,
+      get() {
+        return this.status === 'approved';
+      }
     },
     rejection_reason: {
       type: Sequelize.TEXT,
