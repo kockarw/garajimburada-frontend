@@ -84,7 +84,7 @@ const Header: React.FC = () => {
                   {user.is_admin && (
                     <Link 
                       to="/admin" 
-                      className="btn btn-secondary flex items-center gap-1"
+                      className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
                     >
                       <Shield size={16} />
                       <span>Admin Panel</span>
@@ -232,7 +232,7 @@ const Header: React.FC = () => {
                   {user.is_admin && (
                     <Link 
                       to="/admin" 
-                      className="inline-flex w-full items-center justify-center gap-2 bg-red-600 text-white px-4 py-3 rounded-lg mb-3 hover:bg-red-700"
+                      className="inline-flex w-full items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg mb-3 transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <Shield size={18} />

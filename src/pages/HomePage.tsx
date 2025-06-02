@@ -49,6 +49,7 @@ const HomePage: React.FC = () => {
 
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearchQuery, setActiveSearchQuery] = useState('');
   const [serviceFilter, setServiceFilter] = useState('All Services');
   const [ratingFilter, setRatingFilter] = useState(0);
   const [cityFilter, setCityFilter] = useState('All Cities');
@@ -85,8 +86,8 @@ const HomePage: React.FC = () => {
     ); // Only show approved and active garages
     
     // Apply search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    if (activeSearchQuery) {
+      const query = activeSearchQuery.toLowerCase();
       results = results.filter(garage => 
         garage.name.toLowerCase().includes(query) || 
         garage.description.toLowerCase().includes(query)
@@ -134,7 +135,7 @@ const HomePage: React.FC = () => {
     
     setFilteredGarages(results);
     setCurrentPage(1); // Reset to first page when filters change
-  }, [garages, searchQuery, serviceFilter, ratingFilter, cityFilter, districtFilter, sortBy]);
+  }, [garages, activeSearchQuery, serviceFilter, ratingFilter, cityFilter, districtFilter, sortBy]);
 
   // Get current garages for pagination
   const indexOfLastGarage = currentPage * garagesPerPage;
@@ -182,6 +183,7 @@ const HomePage: React.FC = () => {
 
   const resetFilters = () => {
     setSearchQuery('');
+    setActiveSearchQuery('');
     setServiceFilter('All Services');
     setRatingFilter(0);
     setCityFilter('All Cities');
@@ -201,6 +203,11 @@ const HomePage: React.FC = () => {
 
   const handleViewDetails = (id: string) => {
     navigate(`/garage/${id}`);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setActiveSearchQuery(searchQuery);
   };
 
   return (
@@ -225,16 +232,25 @@ const HomePage: React.FC = () => {
           
           {/* Search Bar */}
           <div className="max-w-3xl mx-auto relative mb-4 md:mb-6 px-4 md:px-0">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder={width < 768 ? "Search by garages name" : "Search by garage name or keyword..."}
-                className="input w-full pl-12 py-3 md:py-4 text-base border-white shadow-lg text-secondary-800"
-                value={searchQuery}
-                onChange={handleSearchChange}
-              />
-              <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary-400" />
-            </div>
+            <form onSubmit={handleSearchSubmit} className="relative flex gap-2">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder={width < 768 ? "Search by garages name" : "Search by garage name or keyword..."}
+                  className="input w-full pl-12 py-3 md:py-4 text-base border-white shadow-lg text-secondary-800"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                />
+                <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary-400" />
+              </div>
+              <button 
+                type="submit" 
+                className="btn bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 md:py-4 shadow-lg flex items-center gap-2"
+              >
+                <Search size={20} />
+                <span className="hidden md:inline">Search</span>
+              </button>
+            </form>
           </div>
           
           {/* Mobile Filter Toggle */}

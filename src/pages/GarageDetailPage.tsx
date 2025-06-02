@@ -300,7 +300,7 @@ const GarageDetailPage: React.FC = () => {
       />
       
       {/* Owner Controls Component */}
-      {user && garage?.owner && user.id === garage.owner.id && (
+      {user && garage?.owner && user.id === garage.owner.id && !user.is_admin && (
         <OwnerControls garageId={garage.id} />
       )}
 
