@@ -332,7 +332,7 @@ const GarageDetailPage: React.FC = () => {
             <span className="text-secondary-700 font-medium">{garage.name}</span>
           </div>
 
-          {/* Title */}
+          {/* Titlee */}
           <h1 className="text-2xl md:text-3xl font-bold mb-3">{garage.name}</h1>
           
           {/* Location and Ad Details */}
