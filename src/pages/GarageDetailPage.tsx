@@ -4,6 +4,8 @@ import { Star, Clock, MapPin, Phone, Mail, Globe, MessageSquare, Calendar, Tag, 
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import MapComponent from '../components/MapComponent';
+import OwnerControls from '../components/OwnerControls';
+import AdminControls from '../components/AdminControls';
 import garageService, { GarageResponse } from '../services/garage.service';
 import type { 
   Review as ReviewType,
@@ -296,6 +298,25 @@ const GarageDetailPage: React.FC = () => {
         onConfirm={modal.onConfirm}
         onCancel={closeModal}
       />
+      
+      {/* Owner Controls Component */}
+      {user && garage?.owner && user.id === garage.owner.id && (
+        <OwnerControls garageId={garage.id} />
+      )}
+
+      {/* Desktop Admin Controls Component */}
+      {user?.is_admin && garage && (
+        <div className="hidden lg:block">
+          <AdminControls 
+            garageId={garage.id}
+            isVerified={garage.is_verified}
+            isActive={garage.is_active}
+            onToggleVerify={handleToggleVerify}
+            onToggleActive={handleToggleActive}
+            onDelete={handleDelete}
+          />
+        </div>
+      )}
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
@@ -638,91 +659,17 @@ const GarageDetailPage: React.FC = () => {
 
         {/* Sidebar */}
         <div className="lg:col-span-1">
-          {/* Owner Controls Card - Added above the Rating Card */}
-          {user && garage.owner && user.id === garage.owner.id && (
-            <div className="card border border-secondary-200 p-4 mb-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold text-primary-600 flex items-center gap-2">
-                  <Edit size={18} />
-                  <span>Owner Controls</span>
-                </h2>
-              </div>
-              <Link 
-                to={`/edit-garage/${garage.id}`}
-                className="btn btn-primary w-full flex items-center justify-center gap-2"
-              >
-                <Edit size={18} />
-                <span>Edit Garage</span>
-              </Link>
-            </div>
-          )}
-
-          {/* Admin Controls Card */}
-          {user?.is_admin && (
-            <div className="card border border-secondary-200 p-4 mb-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold text-primary-600 flex items-center gap-2">
-                  <Shield size={18} />
-                  <span>Admin Controls</span>
-                </h2>
-                <div className="flex items-center gap-1">
-                  <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    garage?.is_active 
-                      ? 'bg-success-100 text-success-800' 
-                      : 'bg-error-100 text-error-800'
-                  }`}>
-                    {garage?.is_active ? 'Active' : 'Inactive'}
-                  </div>
-                  <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    garage?.is_verified 
-                      ? 'bg-primary-100 text-primary-800' 
-                      : 'bg-secondary-100 text-secondary-800'
-                  }`}>
-                    {garage?.is_verified ? 'Verified' : 'Unverified'}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 mb-2">
-                <Link 
-                  to={`/edit-garage/${garage.id}`}
-                  className="btn btn-primary btn-sm flex items-center justify-center gap-1"
-                >
-                  <Edit size={16} />
-                  <span>Edit</span>
-                </Link>
-                <button
-                  onClick={handleToggleVerify}
-                  className={`btn btn-sm flex items-center justify-center gap-1 ${
-                    garage?.is_verified 
-                      ? 'btn-secondary' 
-                      : 'btn-primary'
-                  }`}
-                >
-                  <Shield size={16} />
-                  <span>{garage?.is_verified ? 'Unverify' : 'Verify'}</span>
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={handleToggleActive}
-                  className={`btn btn-sm flex items-center justify-center gap-1 ${
-                    garage?.is_active 
-                      ? 'btn-error' 
-                      : 'btn-success'
-                  }`}
-                >
-                  {garage?.is_active ? <X size={16} /> : <Check size={16} />}
-                  <span>{garage?.is_active ? 'Deactivate' : 'Activate'}</span>
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="btn btn-error btn-sm flex items-center justify-center gap-1"
-                >
-                  <Trash size={16} />
-                  <span>Delete</span>
-                </button>
-              </div>
+          {/* Mobile Admin Controls */}
+          {user?.is_admin && garage && (
+            <div className="lg:hidden">
+              <AdminControls 
+                garageId={garage.id}
+                isVerified={garage.is_verified}
+                isActive={garage.is_active}
+                onToggleVerify={handleToggleVerify}
+                onToggleActive={handleToggleActive}
+                onDelete={handleDelete}
+              />
             </div>
           )}
 
