@@ -70,10 +70,9 @@ module.exports = (sequelize, Sequelize) => {
       allowNull: false
     },
     is_active: {
-      type: Sequelize.VIRTUAL,
-      get() {
-        return this.status === 'approved';
-      }
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
+      allowNull: false
     },
     rejection_reason: {
       type: Sequelize.TEXT,

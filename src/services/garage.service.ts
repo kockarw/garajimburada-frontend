@@ -58,8 +58,15 @@ class GarageService {
     status?: GarageStatus;
   }): Promise<GarageResponse[]> {
     try {
-      console.log('Making API request to /garages with filters:', filters);
-      const response = await api.get<GarageResponse[]>('/garages', { params: filters });
+      // Set default filters for public listing
+      const defaultFilters = {
+        is_active: true,
+        status: 'approved' as GarageStatus,
+        ...filters // Allow overriding defaults if needed
+      };
+
+      console.log('Making API request to /garages with filters:', defaultFilters);
+      const response = await api.get<GarageResponse[]>('/garages', { params: defaultFilters });
       console.log('Raw API response:', response);
       return response.data;
     } catch (error) {
@@ -183,13 +190,13 @@ class GarageService {
     }
   }
 
-  async updateGarageStatus(garageId: string, status: GarageStatus, rejectionReason?: string): Promise<GarageResponse> {
+  async updateGarageStatus(garageId: string, status: GarageStatus, rejectionReason?: string, is_active?: boolean): Promise<GarageResponse> {
     try {
-      console.log('Updating garage status:', { garageId, status, rejectionReason });
-      const response = await api.put<{message: string, garage: GarageResponse}>(`/garages/${garageId}`, {
+      console.log('Updating garage status:', { garageId, status, rejectionReason, is_active });
+      const response = await api.patch<{message: string, garage: GarageResponse}>(`/garages/${garageId}/status`, {
         status,
         rejection_reason: rejectionReason,
-        is_active: status === 'approved'
+        is_active: is_active
       });
       console.log('Update response:', response.data);
       return response.data.garage;
@@ -203,6 +210,30 @@ class GarageService {
     try {
       await api.delete(`/garages/${garageId}`);
     } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async toggleGarageActive(garageId: string): Promise<GarageResponse> {
+    try {
+      console.log('Toggling garage active status:', { garageId });
+      const response = await api.patch<{message: string, garage: GarageResponse}>(`/garages/${garageId}/toggle-active`);
+      console.log('Toggle response:', response.data);
+      return response.data.garage;
+    } catch (error) {
+      console.error('Error toggling garage active status:', error);
+      throw this.handleError(error);
+    }
+  }
+
+  async toggleGarageVerified(garageId: string): Promise<GarageResponse> {
+    try {
+      console.log('Toggling garage verification status:', { garageId });
+      const response = await api.patch<{message: string, garage: GarageResponse}>(`/garages/${garageId}/toggle-verified`);
+      console.log('Toggle response:', response.data);
+      return response.data.garage;
+    } catch (error) {
+      console.error('Error toggling garage verification status:', error);
       throw this.handleError(error);
     }
   }

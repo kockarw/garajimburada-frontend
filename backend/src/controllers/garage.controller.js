@@ -609,39 +609,51 @@ exports.getUserGarages = async (req, res) => {
  * Update garage status
  */
 exports.updateGarageStatus = async (req, res) => {
+  const transaction = await sequelize.transaction();
+  
   try {
     const { id } = req.params;
-    const { status } = req.body;
-    const userId = req.user.id;
+    const { status, rejection_reason } = req.body;
 
-    console.log('Updating garage status:', { id, status, userId }); // Debug log
+    console.log('Updating garage status:', { id, status, userId: req.user.id, userRole: req.user.role }); // Debug log
 
-    // Check if garage exists and belongs to user
-    const garage = await Garage.findOne({ 
-      where: { 
-        id,
-        user_id: userId
-      }
-    });
-
+    // Check if garage exists
+    const garage = await Garage.findByPk(id);
     if (!garage) {
-      return res.status(404).json({ message: 'Garage not found or unauthorized' });
+      await transaction.rollback();
+      return res.status(404).json({ message: 'Garage not found' });
     }
 
-    // Update status directly
+    // Check permissions - only admin or owner can update status
+    if (req.user.role !== 'admin' && garage.user_id !== req.user.id) {
+      await transaction.rollback();
+      return res.status(403).json({ message: 'Forbidden - Only admin or owner can update status' });
+    }
+
+    // Update status and is_active
     await garage.update({
       status: status,
       is_active: status === 'approved',
-      rejection_reason: status === 'rejected' ? (req.body.rejection_reason || 'Rejected by admin') : null
-    });
+      rejection_reason: status === 'rejected' ? (rejection_reason || 'Rejected by admin') : null,
+      update_time: new Date()
+    }, { transaction });
 
-    // Reload garage to get fresh data
-    await garage.reload();
+    await transaction.commit();
+
+    // Reload garage with all relations to get fresh data
+    await garage.reload({
+      include: [
+        { model: WorkingHours, as: 'working_hours' },
+        { model: GalleryImage, as: 'gallery' },
+        { model: User, as: 'owner', attributes: ['id', 'username', 'email', 'avatar_url'] }
+      ]
+    });
 
     console.log('Updated garage:', { 
       id: garage.id, 
       status: garage.status,
-      is_active: garage.is_active
+      is_active: garage.is_active,
+      update_time: garage.update_time
     }); // Debug log
 
     res.status(200).json({
@@ -649,6 +661,7 @@ exports.updateGarageStatus = async (req, res) => {
       garage: garage
     });
   } catch (error) {
+    await transaction.rollback();
     console.error('Error updating garage status:', error);
     res.status(500).json({ 
       message: 'Failed to update garage status',

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Navigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, AlertCircle, Info, MapPin, Wrench, Image, Clock } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import { garageService, GarageResponse } from '../services/garage.service';
 import { WorkingHours } from '../mockdata/types';
+import { useScrollToTop } from '../hooks/useScrollToTop';
 
 // Import step components
 import GeneralInfoStep from '../components/garage-creation/GeneralInfoStep';
@@ -204,12 +205,20 @@ const EditGaragePage: React.FC = () => {
     fetchGarageData();
   }, [id, navigate, showToast, user?.is_admin]);
 
+  // Add effect to scroll to top when step changes
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }, [currentStep]);
+
   const steps = [
-    { id: 1, title: 'General Information' },
-    { id: 2, title: 'Location' },
-    { id: 3, title: 'Services' },
-    { id: 4, title: 'Images' },
-    { id: 5, title: 'Working Hours' }
+    { id: 1, title: 'General Information', icon: Info },
+    { id: 2, title: 'Location', icon: MapPin },
+    { id: 3, title: 'Services', icon: Wrench },
+    { id: 4, title: 'Images', icon: Image },
+    { id: 5, title: 'Working Hours', icon: Clock }
   ];
 
   const handleNext = () => {
@@ -461,31 +470,37 @@ const EditGaragePage: React.FC = () => {
         
         {/* Progress Steps */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between px-2 md:px-0">
             {steps.map((step, index) => (
               <React.Fragment key={step.id}>
                 <div className="flex flex-col items-center">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  <button
+                    onClick={() => currentStep > step.id && setCurrentStep(step.id)}
+                    className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center transition-all duration-300 ease-in-out transform ${
                       currentStep >= step.id
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-secondary-200 text-secondary-600'
-                    }`}
+                        ? 'bg-primary-600 text-white scale-100'
+                        : 'bg-secondary-200 text-secondary-600 scale-95'
+                    } ${currentStep > step.id ? 'cursor-pointer hover:bg-primary-700' : 'cursor-default'}`}
                   >
                     {currentStep > step.id ? (
-                      <Check size={16} />
+                      <Check size={14} className="transition-transform duration-300 ease-in-out" />
                     ) : (
-                      <span>{step.id}</span>
+                      <span className="text-sm">{step.id}</span>
                     )}
+                  </button>
+                  <div className="flex items-center gap-1 mt-2">
+                    <step.icon size={14} className="text-secondary-500" />
+                    <span className="text-xs md:text-sm text-secondary-600 hidden md:inline">{step.title}</span>
                   </div>
-                  <span className="text-sm mt-2 text-secondary-600">{step.title}</span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div
-                    className={`flex-1 h-1 mx-4 ${
-                      currentStep > step.id ? 'bg-primary-600' : 'bg-secondary-200'
-                    }`}
-                  />
+                  <div className="flex-1 h-1 mx-2 md:mx-4 relative">
+                    <div className="absolute inset-0 bg-secondary-200" />
+                    <div
+                      className="absolute inset-0 bg-primary-600 transition-all duration-500 ease-in-out origin-left"
+                      style={{ transform: `scaleX(${currentStep > step.id ? 1 : 0})` }}
+                    />
+                  </div>
                 )}
               </React.Fragment>
             ))}

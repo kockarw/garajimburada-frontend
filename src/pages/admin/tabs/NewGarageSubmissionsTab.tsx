@@ -23,8 +23,7 @@ const NewGarageSubmissionsTab: React.FC = () => {
     try {
       setLoading(true);
       const garages = await garageService.getAllGarages({ 
-        status: 'pending',
-        is_active: false // Only get inactive garages
+        status: 'pending'
       });
       console.log('Fetched pending submissions:', garages.map(g => ({ id: g.id, status: g.status, name: g.name })));
       setSubmissions(garages);
@@ -51,10 +50,14 @@ const NewGarageSubmissionsTab: React.FC = () => {
   const handleApproveSubmission = async (id: string) => {
     try {
       setLoading(true);
-      await garageService.updateGarageStatus(id, 'approved');
-      await fetchPendingSubmissions(); // Refresh the list
+      const updatedGarage = await garageService.updateGarageStatus(id, 'approved');
+      console.log('Garage updated:', updatedGarage); // Debug log to verify response
+
+      // Remove the approved garage from the list
+      setSubmissions(prev => prev.filter(garage => garage.id !== id));
       showToast('Garage submission approved successfully', 'success');
     } catch (err) {
+      console.error('Error approving garage:', err);
       showToast('Failed to approve garage submission', 'error');
     } finally {
       setLoading(false);
@@ -77,7 +80,7 @@ const NewGarageSubmissionsTab: React.FC = () => {
         'rejected',
         rejectReason
       );
-      await fetchPendingSubmissions(); // Refresh the list
+      await fetchPendingSubmissions();
       showToast('Garage submission rejected', 'success');
     } catch (err) {
       showToast('Failed to reject garage submission', 'error');

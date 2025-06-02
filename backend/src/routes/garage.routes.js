@@ -22,7 +22,7 @@ router.post('/', authenticate, garageController.createGarage);
 // Update garage (requires authentication and ownership)
 router.put('/:id', authenticate, isGarageOwner, garageController.updateGarage);
 
-// Update garage status
+// Update garage status (admin or owner)
 router.patch('/:id/status', authenticate, garageController.updateGarageStatus);
 
 // Delete garage (requires authentication and ownership)

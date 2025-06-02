@@ -64,17 +64,32 @@ const RegisterPage: React.FC = () => {
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
     
-    // Remove all non-numeric characters except +
-    value = value.replace(/[^\d+]/g, '');
+    // Remove all non-numeric characters
+    value = value.replace(/\D/g, '');
     
-    // Ensure it starts with +90
-    if (!value.startsWith('+90')) {
-      value = '+90' + value.replace('+', '');
+    // If the value starts with 90, remove it
+    if (value.startsWith('90')) {
+      value = value.substring(2);
     }
     
-    // Limit the total length to 13 (+90 + 10 digits)
-    if (value.length > 13) {
-      value = value.slice(0, 13);
+    // Ensure it starts with 5 after removing prefixes
+    if (value.length > 0 && !value.startsWith('5')) {
+      if (value.startsWith('0')) {
+        value = value.substring(1);
+      }
+      if (!value.startsWith('5')) {
+        value = '';
+      }
+    }
+    
+    // Limit to 10 digits (5 + 9 digits)
+    if (value.length > 10) {
+      value = value.slice(0, 10);
+    }
+
+    // Format for display
+    if (value.length > 0) {
+      value = '+90' + value;
     }
 
     setFormData({
@@ -128,6 +143,12 @@ const RegisterPage: React.FC = () => {
 
     if (!formData.phone) {
       newErrors.phone = 'Phone number is required';
+    } else {
+      // Remove all non-numeric characters for validation
+      const phoneDigits = formData.phone.replace(/\D/g, '').replace(/^90/, '');
+      if (!phoneDigits.match(/^5[0-9]{9}$/)) {
+        newErrors.phone = 'Please enter a valid Turkish phone number (5XX XXX XX XX)';
+      }
     }
 
     if (!formData.password) {
@@ -160,15 +181,18 @@ const RegisterPage: React.FC = () => {
       
       // Combine first and last name for the username
       const username = `${formData.name} ${formData.surname}`;
+
+      // Format phone number: remove all non-digits and +90 prefix
+      const formattedPhone = formData.phone.replace(/\D/g, '').replace(/^90/, '');
       
       console.log('Submitting registration with data:', {
         email: formData.email,
         password: formData.password,
         username: username,
-        phone: formData.phone
+        phone: formattedPhone
       });
       
-      await signUp(formData.email, formData.password, username, formData.phone);
+      await signUp(formData.email, formData.password, username, formattedPhone);
       navigate('/');
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -176,6 +200,10 @@ const RegisterPage: React.FC = () => {
       // API error handling
       if (error.response?.data?.errors) {
         setErrors(error.response.data.errors);
+      } else if (error.response?.data?.message) {
+        showToast(error.response.data.message, 'error');
+      } else {
+        showToast('An error occurred during registration', 'error');
       }
     } finally {
       setIsSubmitting(false);

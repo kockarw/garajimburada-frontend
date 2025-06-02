@@ -80,7 +80,9 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     // Apply filters whenever filter states change
-    let results = [...garages];
+    let results = [...garages].filter(garage => 
+      garage.status === 'approved' && garage.is_active === true
+    ); // Only show approved and active garages
     
     // Apply search filter
     if (searchQuery) {

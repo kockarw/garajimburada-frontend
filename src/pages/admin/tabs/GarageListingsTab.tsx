@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, Edit, Trash, Search, X, Check, Shield, AlertCircle, ChevronRight } from 'lucide-react';
+import { Eye, Edit, Trash, Search, X, Check, Shield, AlertCircle, ChevronRight, MapPin } from 'lucide-react';
 import { useToast } from '../../../contexts/ToastContext';
 import { Link, useNavigate } from 'react-router-dom';
 import garageService, { GarageResponse } from '../../../services/garage.service';
@@ -157,22 +157,18 @@ const GarageListingsTab: React.FC = () => {
     
     setLoading(true);
     try {
-      console.log('Toggling garage status:', { id, currentStatus: garage.status });
+      console.log('Toggling garage active status:', { id, currentStatus: garage.is_active });
       
-      // If the garage is currently approved, set it to inactive
-      // If it's inactive or any other status, set it to approved
-      const newStatus = garage.status === 'approved' ? 'inactive' : 'approved';
-      
-      // Update the garage status using admin endpoint
-      const updatedGarage = await garageService.updateGarageStatus(id, newStatus);
+      // Update the garage active status using admin endpoint
+      const updatedGarage = await garageService.toggleGarageActive(id);
       console.log('Updated garage:', updatedGarage);
       
       // Refresh the entire list to get the latest data
       await fetchGarages();
       
-      showToast(`Garage ${newStatus === 'approved' ? 'activated' : 'deactivated'} successfully`, 'success');
+      showToast(`Garage ${!garage.is_active ? 'activated' : 'deactivated'} successfully`, 'success');
     } catch (error: any) {
-      console.error('Error toggling garage status:', error);
+      console.error('Error toggling garage active status:', error);
       const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update garage status';
       showToast(errorMessage, 'error');
     } finally {
@@ -183,21 +179,27 @@ const GarageListingsTab: React.FC = () => {
 
   const confirmToggleVerified = async (id: string) => {
     const garage = garages.find(g => g.id === id);
-    if (!garage) return;
+    if (!garage) {
+      showToast('Garage not found', 'error');
+      return;
+    }
     
     setLoading(true);
     try {
-      // Update the garage status using updateGarageStatus
-      const newStatus = garage.is_verified ? 'inactive' : 'approved';
-      await garageService.updateGarageStatus(id, newStatus);
+      console.log('Toggling garage verification status:', { id, currentStatus: garage.is_verified });
+      
+      // Update the garage verification status using admin endpoint
+      const updatedGarage = await garageService.toggleGarageVerified(id);
+      console.log('Updated garage:', updatedGarage);
       
       // Refresh the list to get the latest data
       await fetchGarages();
       
       showToast(`Garage ${!garage.is_verified ? 'verified' : 'unverified'} successfully`, 'success');
-    } catch (err) {
-      console.error('Error toggling garage verification:', err);
-      showToast(`Failed to ${!garage.is_verified ? 'verify' : 'unverify'} garage`, 'error');
+    } catch (error: any) {
+      console.error('Error toggling garage verification:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update garage verification';
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
       closeModal();
@@ -223,14 +225,13 @@ const GarageListingsTab: React.FC = () => {
     const garage = garages.find(g => g.id === id);
     if (!garage) return;
     
-    const isApproved = garage.status === 'approved';
     openConfirmModal({
-      title: isApproved ? 'Deactivate Garage' : 'Activate Garage',
-      message: isApproved 
+      title: garage.is_active ? 'Deactivate Garage' : 'Activate Garage',
+      message: garage.is_active 
         ? 'Are you sure you want to deactivate this garage? It will no longer be visible to users.'
-        : 'Are you sure you want to activate this garage? It will become visible to all users.',
-      confirmText: isApproved ? 'Deactivate' : 'Activate',
-      confirmButtonClass: isApproved ? 'btn-error' : 'btn-success',
+        : 'Are you sure you want to activate this garage? It will become visible to users.',
+      confirmText: garage.is_active ? 'Deactivate' : 'Activate',
+      confirmButtonClass: garage.is_active ? 'btn-error' : 'btn-success',
       onConfirm: () => confirmToggleActive(id)
     });
   };
@@ -327,94 +328,142 @@ const GarageListingsTab: React.FC = () => {
             <div key={garage.id} className="bg-white rounded-xl shadow-sm border border-secondary-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
               {/* Header Section */}
               <div className="p-4 border-b border-secondary-100 bg-secondary-50/50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    {garage.is_verified && (
-                      <div className="shrink-0">
-                        <Shield size={16} className="text-primary-600" />
-                      </div>
-                    )}
-                    <h3 className="font-semibold text-secondary-900 truncate">
-                      {garage.name}
-                    </h3>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      {garage.is_verified && (
+                        <Shield size={16} className="text-primary-600 shrink-0" />
+                      )}
+                      <h3 className="font-semibold text-secondary-900 text-lg">
+                        {garage.name}
+                      </h3>
+                    </div>
+                    <p className="text-sm text-secondary-600 mt-1 font-mono">
+                      ID: {garage.ad_id}
+                    </p>
                   </div>
-                  <span className={`ml-3 shrink-0 px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(garage.status)}`}>
-                    {getStatusText(garage.status)}
-                  </span>
                 </div>
               </div>
               
               {/* Info Section */}
-              <div className="p-4 space-y-3 bg-white">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <p className="text-xs text-secondary-500 font-medium">ID</p>
-                    <p className="text-sm font-mono text-secondary-900">{garage.ad_id}</p>
+              <div className="p-4 space-y-4 bg-white">
+                {/* Location Info */}
+                <div className="flex items-start gap-2">
+                  <div className="shrink-0 mt-0.5">
+                    <MapPin size={16} className="text-secondary-500" />
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-xs text-secondary-500 font-medium">City</p>
+                  <div>
                     <p className="text-sm text-secondary-900">{garage.city}</p>
+                    <p className="text-sm text-secondary-600">{garage.district}</p>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                    garage.status === 'approved' ? 'bg-success-100 text-success-800' : 'bg-error-100 text-error-800'
+
+                {/* Status Tags */}
+                <div className="flex items-center gap-1.5">
+                  {/* Status Tag */}
+                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-secondary-50">
+                    <span className={`w-1.5 h-1.5 rounded-full ${
+                      garage.status === 'approved' ? 'bg-success-500' :
+                      garage.status === 'pending' ? 'bg-warning-500' :
+                      garage.status === 'rejected' ? 'bg-error-500' :
+                      'bg-secondary-500'
+                    }`} />
+                    <span className="text-xs font-medium text-secondary-900">
+                      {getStatusText(garage.status)}
+                    </span>
+                  </div>
+
+                  {/* Active/Inactive Tag */}
+                  <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${
+                    garage.is_active 
+                      ? 'bg-success-50 text-success-700'
+                      : 'bg-error-50 text-error-700'
                   }`}>
-                    {garage.status === 'approved' ? 'Active' : 'Inactive'}
-                  </span>
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                    garage.is_verified ? 'bg-primary-100 text-primary-800' : 'bg-secondary-100 text-secondary-800'
+                    <span className={`w-1.5 h-1.5 rounded-full ${
+                      garage.is_active ? 'bg-success-500' : 'bg-error-500'
+                    }`} />
+                    <span className="text-xs font-medium">
+                      {garage.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+
+                  {/* Verified Tag */}
+                  <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${
+                    garage.is_verified
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'bg-secondary-50 text-secondary-700'
                   }`}>
-                    {garage.is_verified ? 'Verified' : 'Unverified'}
-                  </span>
+                    <Shield size={12} />
+                    <span className="text-xs font-medium">
+                      {garage.is_verified ? 'Verified' : 'Unverified'}
+                    </span>
+                  </div>
                 </div>
               </div>
 
               {/* Actions Section */}
-              <div className="px-4 py-3 bg-secondary-50/50 border-t border-secondary-100">
-                <div className="flex items-center justify-end gap-1">
+              <div className="px-4 py-3 bg-secondary-50 border-t border-secondary-100">
+                <div className="flex items-center justify-end gap-2">
+                  {/* View Details Button */}
                   <button
-                    className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-white text-secondary-700 hover:text-primary-600 transition-colors duration-200"
+                    className="btn btn-ghost btn-sm text-secondary-700 hover:text-primary-600 flex items-center gap-1"
                     onClick={() => handleViewDetails(garage.id)}
                     title="View Details"
                   >
-                    <Eye size={18} />
+                    <Eye size={16} />
+                    <span className="hidden sm:inline">View</span>
                   </button>
+
+                  {/* Edit Button */}
                   <button
-                    className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-white text-secondary-700 hover:text-primary-600 transition-colors duration-200"
+                    className="btn btn-ghost btn-sm text-secondary-700 hover:text-primary-600 flex items-center gap-1"
                     onClick={() => handleEditGarage(garage.id)}
                     title="Edit"
                   >
-                    <Edit size={18} />
+                    <Edit size={16} />
+                    <span className="hidden sm:inline">Edit</span>
                   </button>
+
+                  {/* Active/Inactive Toggle Button */}
                   <button
-                    className={`inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-white transition-colors duration-200 ${
-                      garage.status === 'approved' 
+                    className={`btn btn-ghost btn-sm flex items-center gap-1 ${
+                      garage.is_active 
                         ? 'text-success-600 hover:text-success-700' 
                         : 'text-error-600 hover:text-error-700'
                     }`}
                     onClick={() => handleToggleActive(garage.id)}
-                    title={garage.status === 'approved' ? 'Deactivate' : 'Activate'}
+                    title={garage.is_active ? 'Deactivate' : 'Activate'}
                   >
-                    {garage.status === 'approved' ? <X size={18} /> : <Check size={18} />}
+                    {garage.is_active ? <X size={16} /> : <Check size={16} />}
+                    <span className="hidden sm:inline">
+                      {garage.is_active ? 'Deactivate' : 'Activate'}
+                    </span>
                   </button>
+
+                  {/* Verify Toggle Button */}
                   <button
-                    className={`inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-white transition-colors duration-200 ${
+                    className={`btn btn-ghost btn-sm flex items-center gap-1 ${
                       garage.is_verified 
                         ? 'text-success-600 hover:text-success-700' 
                         : 'text-secondary-600 hover:text-secondary-700'
                     }`}
                     onClick={() => handleToggleVerified(garage.id)}
-                    title={garage.is_verified ? 'Remove Verification' : 'Verify'}
+                    title={garage.is_verified ? 'Unverify' : 'Verify'}
                   >
-                    <Shield size={18} />
+                    <Shield size={16} />
+                    <span className="hidden sm:inline">
+                      {garage.is_verified ? 'Unverify' : 'Verify'}
+                    </span>
                   </button>
+
+                  {/* Delete Button */}
                   <button
-                    className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-white text-error-600 hover:text-error-700 transition-colors duration-200"
+                    className="btn btn-ghost btn-sm text-error-600 hover:text-error-700 flex items-center gap-1"
                     onClick={() => handleDeleteGarage(garage.id)}
                     title="Delete"
                   >
-                    <Trash size={18} />
+                    <Trash size={16} />
+                    <span className="hidden sm:inline">Delete</span>
                   </button>
                 </div>
               </div>
@@ -464,6 +513,11 @@ const GarageListingsTab: React.FC = () => {
                     }`}>
                       {garage.is_verified ? 'Verified' : 'Unverified'}
                     </span>
+                    <span className={`px-2 py-1 rounded-full text-sm ${
+                      garage.is_active ? 'bg-success-100 text-success-800' : 'bg-error-100 text-error-800'
+                    }`}>
+                      {garage.is_active ? 'Active' : 'Inactive'}
+                    </span>
                   </div>
                 </td>
                 <td className="p-4">
@@ -484,14 +538,14 @@ const GarageListingsTab: React.FC = () => {
                     </button>
                     <button
                       className={`p-1 hover:bg-secondary-100 rounded-full ${
-                        garage.status === 'approved' 
+                        garage.is_active 
                           ? 'text-success-600 hover:text-success-700' 
                           : 'text-error-600 hover:text-error-700'
                       }`}
                       onClick={() => handleToggleActive(garage.id)}
-                      title={garage.status === 'approved' ? 'Deactivate' : 'Activate'}
+                      title={garage.is_active ? 'Deactivate' : 'Activate'}
                     >
-                      {garage.status === 'approved' ? <X size={18} /> : <Check size={18} />}
+                      {garage.is_active ? <X size={18} /> : <Check size={18} />}
                     </button>
                     <button
                       className={`p-1 hover:bg-secondary-100 rounded-full ${
