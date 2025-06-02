@@ -42,37 +42,37 @@ const AdminPage: React.FC = () => {
     },
     {
       id: 'new-submissions',
-      label: 'Yeni Başvurular',
+      label: 'New Submissions',
       icon: <ShoppingBag size={20} />,
       component: <NewGarageSubmissionsTab />
     },
     {
       id: 'comments',
-      label: 'Yorumlar',
+      label: 'Comments',
       icon: <MessageSquare size={20} />,
       component: <CommentModerationTab />
     },
     {
       id: 'users',
-      label: 'Kullanıcılar',
+      label: 'Users',
       icon: <Users size={20} />,
       component: <UserManagementTab />
     },
     {
       id: 'settings',
-      label: 'Ayarlar',
+      label: 'Settings',
       icon: <Settings size={20} />,
       component: <SettingsTab />
     },
     {
       id: 'feedback',
-      label: 'Geri Bildirim',
+      label: 'Feedback',
       icon: <MessageCircle size={20} />,
       component: <FeedbackTab />
     },
     {
       id: 'analytics',
-      label: 'Analitik',
+      label: 'Analytics',
       icon: <BarChart size={20} />,
       component: <AnalyticsTab />
     }
