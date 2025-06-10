@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, JSX } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Star, Clock, MapPin, Phone, Mail, Globe, MessageSquare, Calendar, Tag, ChevronRight, Info, AlertTriangle, ThumbsUp, Share2, Facebook, Twitter, Mail as MailIcon, Edit, Shield, Check, X, Trash, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';

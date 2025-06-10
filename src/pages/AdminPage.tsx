@@ -43,6 +43,7 @@ const AdminPage: React.FC = () => {
     {
       id: 'new-submissions',
       label: 'New Submissions',
+      className: 'whitespace-nowrap',
       icon: <ShoppingBag size={20} />,
       component: <NewGarageSubmissionsTab />
     },
@@ -162,7 +163,7 @@ const AdminPage: React.FC = () => {
                     }`}>
                       {tab.icon}
                     </span>
-                    <span className="transition-colors duration-300">{tab.label}</span>
+                    <span className={`transition-colors duration-300 ${tab.className || ''}`}>{tab.label}</span>
                   </button>
                 ))}
               </div>

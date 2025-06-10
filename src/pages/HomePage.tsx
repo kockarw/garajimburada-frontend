@@ -434,7 +434,7 @@ const HomePage: React.FC = () => {
                         <div className="h-8 border-l border-secondary-300 mr-4"></div>
                         <div className="w-1/6 mr-4">Description</div>
                         <div className="h-8 border-l border-secondary-300 mr-4"></div>
-                        <div className="w-1/8 mr-4 flex items-center">Listing Date</div>
+                        <div className="w-1/8 mr-4 flex items-center whitespace-nowrap">Listing Date</div>
                         <div className="h-8 border-l border-secondary-300 mr-4"></div>
                         <div className="w-1/12 flex items-center">
                           <MapPin size={16} className="mr-2" />
